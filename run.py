@@ -102,16 +102,17 @@ class Evidence(db.Model):
     captured_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # ==========================================
-# VIEW ROUTES (UI)
+# REGISTER BLUEPRINTS
 # ==========================================
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Import and register the views blueprint
+from backend.views import views_bp
+app.register_blueprint(views_bp)
 
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
+print("✅ Registered views blueprint with routes:")
+for rule in app.url_map.iter_rules():
+    if rule.endpoint.startswith('views.'):
+        print(f"   {rule.rule} -> {rule.endpoint}")
 
 # ==========================================
 # AUTH ROUTES
@@ -246,6 +247,7 @@ def get_my_devices():
             'latest_vitals': {
                 'hr': latest_ev.heart_rate if latest_ev else None,
                 'temp': latest_ev.temperature if latest_ev else None,
+                'spo2': latest_ev.spo2 if latest_ev else None,
                 'ai_label': latest_ev.ai_label if latest_ev else 'normal',
                 'ai_conf': latest_ev.ai_confidence if latest_ev else 0
             },
@@ -253,7 +255,8 @@ def get_my_devices():
                 'id': latest_al.id if latest_al and latest_al.status != 'RESOLVED' else None,
                 'status': latest_al.status if latest_al and latest_al.status != 'RESOLVED' else None,
                 'reason': latest_al.reason if latest_al and latest_al.status != 'RESOLVED' else None
-            }
+            },
+            'last_update': d.last_seen.isoformat() if d.last_seen else None
         })
     return jsonify(res), 200
 
@@ -265,6 +268,7 @@ def receive_event():
     
     hr = request.form.get('heart_rate', type=float) or 0
     temp = request.form.get('temperature', type=float) or 0
+    spo2 = request.form.get('spo2', type=float) or 0
     lat = request.form.get('lat', type=float)
     lng = request.form.get('lng', type=float)
     
@@ -290,7 +294,7 @@ def receive_event():
     is_stressed = (distress_score > 0.5) or manual_sos
     
     event = SensorEvent(
-        device_id=device.id, heart_rate=hr, temperature=temp,
+        device_id=device.id, heart_rate=hr, temperature=temp, spo2=spo2,
         raw_stress_score=distress_score, ai_label=ai_res.get('label'),
         ai_confidence=ai_res.get('confidence'), has_audio=(audio_filename is not None),
         audio_path=audio_filename
@@ -385,7 +389,24 @@ def seed_data():
             db.session.add(guardian)
             
         db.session.commit()
+        print("✅ Database seeded with test users")
 
 if __name__ == "__main__":
     seed_data()
+    print("\n🛡️  Shield System starting...")
+    print("📍 Server: http://localhost:5000")
+    print("\n📄 Available pages:")
+    print("   / (Landing Page)")
+    print("   /dashboard")
+    print("   /alerts")
+    print("   /profile")
+    print("   /notifications")
+    print("   /monitor")
+    print("   /devices")
+    print("   /settings")
+    print("   /admin")
+    print("   /analytics")
+    print("   /evidence")
+    print("   /simulator")
+    print("   /help\n")
     app.run(debug=True, port=5000)
