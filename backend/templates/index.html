@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Authenticate | Shield System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-container glass-card p-5 mt-5">
+        <div class="text-center mb-5">
+            <h1 class="fw-bold text-premium mb-0" style="font-size: 2.5rem;">🛡️ SHIELD</h1>
+            <p class="text-muted">Proactive Safety. Powered by AI.</p>
+        </div>
+
+        <ul class="nav nav-pills mb-4 nav-fill glass-card p-1" id="pills-tab">
+            <li class="nav-item">
+                <button class="nav-link active rounded-pill px-4" data-bs-toggle="pill" data-bs-target="#login-tab">SIGN
+                    IN</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link rounded-pill px-4" data-bs-toggle="pill"
+                    data-bs-target="#register-tab">JOIN</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Login -->
+            <div class="tab-pane fade show active" id="login-tab">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">EMAIL</label>
+                        <input type="email" class="form-control py-2 rounded-pill px-3" name="email"
+                            placeholder="guardian@safe.com" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="small text-muted mb-1">PASSWORD</label>
+                        <input type="password" class="form-control py-2 rounded-pill px-3" name="password"
+                            placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-premium w-100 rounded-pill py-3 fw-bold">AUTHENTICATE</button>
+                </form>
+            </div>
+
+            <!-- Register -->
+            <div class="tab-pane fade" id="register-tab">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">FULL NAME</label>
+                        <input type="text" class="form-control py-2 rounded-pill px-3" name="name"
+                            placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">EMAIL</label>
+                        <input type="email" class="form-control py-2 rounded-pill px-3" name="email"
+                            placeholder="john@example.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">PASSWORD</label>
+                        <input type="password" class="form-control py-2 rounded-pill px-3" name="password"
+                            placeholder="Create a strong password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted mb-1">DEVICE UID (OPTIONAL)</label>
+                        <input type="text" class="form-control py-2 rounded-pill px-3" name="device_uid"
+                            placeholder="e.g. SHIELD-001">
+                    </div>
+                    <div class="mb-4">
+                        <label class="small text-muted mb-1">ROLE</label>
+                        <select class="form-control py-2 rounded-pill px-3" name="role" required>
+                            <option value="GUARDIAN">Guardian</option>
+                            <option value="POLICE">Law Enforcement</option>
+                            <option value="ADMIN">System Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-premium w-100 rounded-pill py-3 fw-bold">CREATE
+                        ACCOUNT</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="alertMsg" class="mt-4 text-center"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

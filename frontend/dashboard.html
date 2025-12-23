@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shield Dashboard - Women's Safety System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg nav-glass sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-premium" href="#">🛡️ ShieldSystem</a>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-primary me-3" id="userRoleBadge">ROLE</span>
+                <span class="text-light me-3" id="userNameDisplay">User</span>
+                <button class="btn btn-outline-light btn-sm rounded-pill" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- LEFT COLUMN: MAP -->
+            <div class="col-lg-8 mb-4">
+                <div class="glass-card p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="m-0">Live Tracking Map</h5>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="initMap()">Reset
+                            View</button>
+                    </div>
+                    <div id="mapContainer" class="map-container"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: ALERTS / STATS -->
+            <div class="col-lg-4">
+                <!-- GUARDIAN: Device List -->
+                <div id="guardianView" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>My Devices</h5>
+                        <button class="btn btn-premium btn-sm rounded-pill" data-bs-toggle="modal"
+                            data-bs-target="#addDeviceModal">+</button>
+                    </div>
+                    <div id="deviceList" class="row g-3">
+                        <div class="col-12 text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN: Stats Summary -->
+                <div id="adminView" class="d-none">
+                    <h5>System Overview</h5>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <div class="glass-card p-3 text-center">
+                                <h3 id="statDevices">0</h3>
+                                <small class="text-muted">Devices</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="glass-card p-3 text-center border-danger">
+                                <h3 id="statAlerts" class="text-danger">0</h3>
+                                <small class="text-muted">New Alerts</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="glass-card p-3 text-center">
+                                <h3 id="statUsers">0</h3>
+                                <small class="text-muted">Total Users</small>
+                            </div>
+                        </div>
+                    </div>
+                    <h5>Recent Activity</h5>
+                    <div class="glass-card p-0 overflow-hidden">
+                        <table class="table table-dark table-hover m-0 small">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Device</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Device Modal -->
+    <div class="modal fade" id="addDeviceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content glass-card p-2 bg-dark">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">Register Device</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDeviceForm">
+                        <div class="mb-3">
+                            <label class="small text-muted">Device UID</label>
+                            <input type="text" class="form-control" name="device_uid" placeholder="e.g. SHIELD-001"
+                                required>
+                        </div>
+                        <button type="submit" class="btn btn-premium w-100 rounded-pill py-2">Add to Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Detail Modal -->
+    <div class="modal fade" id="alertDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-card bg-dark border-danger">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-danger">⚠️ Distress Signal Detected</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <p class="mb-1"><strong>Reason:</strong> <span id="modalReason"
+                            class="badge bg-warning text-dark"></span></p>
+                    <p class="mb-1"><strong>Time:</strong> <span id="modalTime" class="small text-muted"></span></p>
+                    <p><strong>Current Status:</strong> <span id="modalStatus" class="badge bg-info"></span></p>
+                    <hr class="bg-light opacity-25">
+                    <h6>Evidence Capture</h6>
+                    <div id="modalEvidence" class="evidence-player mt-2"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                        onclick="updateAlertStatusLocally('RESOLVED')">Mark Safe</button>
+                    <button class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Shield Dashboard{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg nav-glass sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-premium" href="#">🛡️ ShieldSystem</a>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-primary me-3" id="userRoleBadge">ROLE</span>
+            <span class="text-light me-3" id="userNameDisplay">User</span>
+            <button class="btn btn-outline-light btn-sm rounded-pill" id="logoutBtn">Logout</button>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- LEFT COLUMN: MAP -->
+        <div class="col-lg-8 mb-4">
+            <div class="glass-card p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0">Live Tracking Map</h5>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="initMap()">Reset
+                        View</button>
+                </div>
+                <div id="mapContainer" class="map-container" style="height: 500px; border-radius: 15px;"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: ALERTS / STATS -->
+        <div class="col-lg-4">
+            <!-- GUARDIAN: Device List -->
+            <div id="guardianView" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>My Devices</h5>
+                    <button class="btn btn-premium btn-sm rounded-pill" data-bs-toggle="modal"
+                        data-bs-target="#addDeviceModal">+</button>
+                </div>
+                <div id="deviceList" class="row g-3">
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN: Stats Summary -->
+            <div id="adminView" class="d-none">
+                <h5>System Overview</h5>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div class="glass-card p-3 text-center">
+                            <h3 id="statDevices">0</h3>
+                            <small class="text-muted">Devices</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="glass-card p-3 text-center border-danger">
+                            <h3 id="statAlerts" class="text-danger">0</h3>
+                            <small class="text-muted">New Alerts</small>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="glass-card p-3 text-center">
+                            <h3 id="statUsers">0</h3>
+                            <small class="text-muted">Total Users</small>
+                        </div>
+                    </div>
+                </div>
+                <h5>Recent Activity</h5>
+                <div class="glass-card p-0 overflow-hidden">
+                    <table class="table table-dark table-hover m-0 small">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Device</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alertTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% include "modals.html" %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,51 @@
+<!-- Add Device Modal -->
+<div class="modal fade" id="addDeviceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-card p-2 bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Register Device</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDeviceForm">
+                    <div class="mb-3">
+                        <label class="small text-muted">Device UID</label>
+                        <input type="text" class="form-control" name="device_uid" placeholder="e.g. SHIELD-UNIT-001"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="small text-muted">Owner Email Confirmation</label>
+                        <input type="email" class="form-control" name="email" placeholder="john@example.com" required>
+                    </div>
+                    <button type="submit" class="btn btn-premium w-100 rounded-pill py-2">Add to Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Detail Modal -->
+<div class="modal fade" id="alertDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card bg-dark border-danger">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">⚠️ Distress Signal Detected</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <p class="mb-1"><strong>Reason:</strong> <span id="modalReason"
+                        class="badge bg-warning text-dark"></span></p>
+                <p class="mb-1"><strong>Time:</strong> <span id="modalTime" class="small text-muted"></span></p>
+                <p><strong>Current Status:</strong> <span id="modalStatus" class="badge bg-info"></span></p>
+                <hr class="bg-light opacity-25">
+                <h6>Evidence Capture</h6>
+                <div id="modalEvidence" class="evidence-player mt-2"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-outline-success btn-sm rounded-pill px-3"
+                    onclick="updateAlertStatusLocally('RESOLVED')">Mark Safe</button>
+                <button class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

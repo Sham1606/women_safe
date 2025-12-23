@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+
+# Data & models
+data/
+models/
+
+# Media
+*.wav
+*.mp3
+
+# Docs
+docs/
+*.docx
+*.pdf
