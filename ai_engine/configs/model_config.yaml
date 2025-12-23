@@ -1,0 +1,74 @@
+# Model Configuration for Ensemble Audio Stress Detection
+
+model:
+  name: "ensemble_audio_stress_detector"
+  version: "1.0.0"
+  type: "soft_voting_ensemble"
+  
+  classifiers:
+    - name: "logistic_regression"
+      params:
+        max_iter: 1000
+        random_state: 42
+    
+    - name: "random_forest"
+      params:
+        n_estimators: 100
+        max_depth: 20
+        random_state: 42
+    
+    - name: "gradient_boosting"
+      params:
+        n_estimators: 100
+        learning_rate: 0.1
+        max_depth: 5
+        random_state: 42
+    
+    - name: "svm"
+      params:
+        kernel: "rbf"
+        probability: true
+        C: 1.0
+        random_state: 42
+
+training:
+  test_size: 0.2
+  cross_validation_folds: 5
+  random_state: 42
+  stratify: true
+
+features:
+  audio:
+    sample_rate: 22050
+    duration: 3.0
+    n_mfcc: 40
+    n_chroma: 12
+    n_mel: 128
+    n_contrast: 7
+  
+  scaling:
+    method: "standard_scaler"
+
+physiological:
+  thresholds:
+    heart_rate:
+      normal_min: 60
+      normal_max: 100
+      stress_threshold: 110
+      panic_threshold: 130
+    
+    temperature:
+      normal_min: 36.1
+      normal_max: 37.2
+      stress_threshold: 37.5
+      abnormal_threshold: 38.0
+
+hybrid:
+  weights:
+    audio: 0.6
+    physiological: 0.4
+  
+  decision_thresholds:
+    high_confidence: 0.85
+    medium_confidence: 0.70
+    low_confidence: 0.50
