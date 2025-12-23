@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Device Management - Shield System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Devices List -->
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>📱 My Devices</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeviceModal">
+                    + Add Device
+                </button>
+            </div>
+
+            <div id="devicesList" class="row g-3">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2">Loading devices...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Device Statistics -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📊 Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Total Devices:</span>
+                            <strong id="totalDevices">0</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Online:</span>
+                            <strong id="onlineDevices" class="text-success">0</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Offline:</span>
+                            <strong id="offlineDevices" class="text-secondary">0</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>With Alerts:</span>
+                            <strong id="alertDevices" class="text-danger">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-outline-primary w-100 mb-2" onclick="refreshDevices()">
+                        🔄 Refresh All
+                    </button>
+                    <button class="btn btn-outline-secondary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#bulkActionModal">
+                        ⚙️ Bulk Actions
+                    </button>
+                    <button class="btn btn-outline-info w-100" onclick="exportDeviceData()">
+                        💾 Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Device Modal -->
+<div class="modal fade" id="addDeviceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Device</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addDeviceForm" onsubmit="addDevice(event)">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Device UID</label>
+                        <input type="text" class="form-control" name="device_uid" required
+                               placeholder="e.g., SHIELD-001">
+                        <small class="text-muted">Enter the unique identifier printed on your device</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Device Name (Optional)</label>
+                        <input type="text" class="form-control" name="device_name" 
+                               placeholder="e.g., Mom's Watch">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Device</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Device Details Modal -->
+<div class="modal fade" id="deviceDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deviceDetailTitle">Device Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="deviceDetailBody">
+                <!-- Loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="removeDeviceBtn">Remove Device</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.device-card {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.device-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.device-card.online {
+    border-color: #198754;
+}
+
+.device-card.alert-active {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.battery-bar {
+    height: 10px;
+    border-radius: 5px;
+}
+</style>
+
+<script>
+const API_BASE = '';
+let devices = [];
+
+document.addEventListener('DOMContentLoaded', loadDevices);
+
+function loadDevices() {
+    const token = localStorage.getItem('token');
+    
+    fetch(`${API_BASE}/api/device/my-devices`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+        devices = data;
+        renderDevices();
+        updateStatistics();
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        document.getElementById('devicesList').innerHTML = 
+            '<div class="col-12 alert alert-danger">Failed to load devices</div>';
+    });
+}
+
+function renderDevices() {
+    const container = document.getElementById('devicesList');
+    
+    if (devices.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <h4 class="text-muted">No devices registered</h4>
+                <p>Click "Add Device" to register your first device</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = devices.map(device => {
+        const statusClass = device.is_active ? 'online' : '';
+        const alertClass = device.active_alert?.id ? 'alert-active' : '';
+        const battery = device.battery || 0;
+        const batteryColor = battery > 50 ? 'success' : battery > 20 ? 'warning' : 'danger';
+        
+        return `
+            <div class="col-md-6">
+                <div class="device-card ${statusClass} ${alertClass}" onclick="viewDevice('${device.uid}')">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">📱 ${device.uid}</h5>
+                        <span class="badge ${device.is_active ? 'bg-success' : 'bg-secondary'}">
+                            ${device.is_active ? 'Online' : 'Offline'}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <small class="text-muted">Battery</small>
+                        <div class="progress battery-bar">
+                            <div class="progress-bar bg-${batteryColor}" style="width: ${battery}%"></div>
+                        </div>
+                        <small>${battery}%</small>
+                    </div>
+                    
+                    ${device.latest_vitals ? `
+                        <div class="mt-3">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="text-muted small">Heart Rate</div>
+                                    <strong>${device.latest_vitals.hr || '--'}</strong>
+                                    <small class="text-muted">bpm</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-muted small">Temp</div>
+                                    <strong>${device.latest_vitals.temp || '--'}</strong>
+                                    <small class="text-muted">°C</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="text-muted small">AI</div>
+                                    <span class="badge ${device.latest_vitals.ai_label === 'normal' ? 'bg-success' : 'bg-warning'}">
+                                        ${device.latest_vitals.ai_label || 'N/A'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    ` : '<p class="text-muted small mb-0">No vitals data yet</p>'}
+                    
+                    ${device.active_alert?.id ? `
+                        <div class="mt-3">
+                            <div class="alert alert-danger mb-0 py-2">
+                                <strong>🚨 Active Alert:</strong> ${device.active_alert.reason}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="mt-2 text-end">
+                        <small class="text-muted">Last update: ${getTimeAgo(device.last_update)}</small>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateStatistics() {
+    document.getElementById('totalDevices').textContent = devices.length;
+    document.getElementById('onlineDevices').textContent = devices.filter(d => d.is_active).length;
+    document.getElementById('offlineDevices').textContent = devices.filter(d => !d.is_active).length;
+    document.getElementById('alertDevices').textContent = devices.filter(d => d.active_alert?.id).length;
+}
+
+function addDevice(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const token = localStorage.getItem('token');
+    
+    fetch(`${API_BASE}/api/device/register`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            device_uid: formData.get('device_uid')
+        })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Failed to add device');
+        return res.json();
+    })
+    .then(() => {
+        alert('Device added successfully!');
+        bootstrap.Modal.getInstance(document.getElementById('addDeviceModal')).hide();
+        event.target.reset();
+        loadDevices();
+    })
+    .catch(err => {
+        alert('Error: ' + err.message);
+    });
+}
+
+function viewDevice(uid) {
+    const device = devices.find(d => d.uid === uid);
+    if (!device) return;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deviceDetailModal'));
+    document.getElementById('deviceDetailTitle').textContent = `Device: ${uid}`;
+    
+    const body = document.getElementById('deviceDetailBody');
+    body.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Device Information</h6>
+                <table class="table table-sm">
+                    <tr><td>UID:</td><td><strong>${device.uid}</strong></td></tr>
+                    <tr><td>Status:</td><td><span class="badge ${device.is_active ? 'bg-success' : 'bg-secondary'}">${device.is_active ? 'Online' : 'Offline'}</span></td></tr>
+                    <tr><td>Battery:</td><td>${device.battery}%</td></tr>
+                    <tr><td>Location:</td><td>${device.location?.lat || 'N/A'}, ${device.location?.lng || 'N/A'}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Latest Vitals</h6>
+                ${device.latest_vitals ? `
+                    <table class="table table-sm">
+                        <tr><td>Heart Rate:</td><td>${device.latest_vitals.hr} bpm</td></tr>
+                        <tr><td>Temperature:</td><td>${device.latest_vitals.temp}°C</td></tr>
+                        <tr><td>SpO2:</td><td>${device.latest_vitals.spo2 || 'N/A'}%</td></tr>
+                        <tr><td>AI Status:</td><td><span class="badge ${device.latest_vitals.ai_label === 'normal' ? 'bg-success' : 'bg-warning'}">${device.latest_vitals.ai_label}</span></td></tr>
+                    </table>
+                ` : '<p class="text-muted">No vitals data available</p>'}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('removeDeviceBtn').onclick = () => removeDevice(uid);
+    modal.show();
+}
+
+function removeDevice(uid) {
+    if (!confirm(`Are you sure you want to remove device ${uid}?`)) return;
+    
+    // API call to remove device would go here
+    alert('Device removal functionality coming soon');
+}
+
+function refreshDevices() {
+    loadDevices();
+}
+
+function exportDeviceData() {
+    const csv = generateCSV(devices);
+    downloadCSV(csv, 'devices_export.csv');
+}
+
+function generateCSV(data) {
+    const headers = ['UID', 'Status', 'Battery', 'Heart Rate', 'Temperature', 'AI Label'];
+    const rows = data.map(d => [
+        d.uid,
+        d.is_active ? 'Online' : 'Offline',
+        d.battery,
+        d.latest_vitals?.hr || 'N/A',
+        d.latest_vitals?.temp || 'N/A',
+        d.latest_vitals?.ai_label || 'N/A'
+    ]);
+    
+    return [headers, ...rows].map(row => row.join(',')).join('\n');
+}
+
+function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+}
+
+function getTimeAgo(timestamp) {
+    if (!timestamp) return 'Never';
+    const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+}
+</script>
+{% endblock %}

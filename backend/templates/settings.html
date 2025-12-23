@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Shield System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">⚙️ Settings</h2>
+
+    <div class="row">
+        <div class="col-md-3">
+            <!-- Settings Navigation -->
+            <div class="list-group" id="settingsTabs" role="tablist">
+                <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#profile-settings">
+                    👤 Profile
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#notification-settings">
+                    🔔 Notifications
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#alert-settings">
+                    🚨 Alert Preferences
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#security-settings">
+                    🔒 Security
+                </a>
+                <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#device-settings">
+                    📱 Devices
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Profile Settings -->
+                <div class="tab-pane fade show active" id="profile-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Profile Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="profileForm" onsubmit="updateProfile(event)">
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <input type="text" class="form-control" id="profileName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="profileEmail" readonly>
+                                    <small class="text-muted">Email cannot be changed</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="profilePhone" placeholder="+91 1234567890">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notification Settings -->
+                <div class="tab-pane fade" id="notification-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Notification Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                <label class="form-check-label" for="emailNotifications">
+                                    Email Notifications
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="smsNotifications" checked>
+                                <label class="form-check-label" for="smsNotifications">
+                                    SMS Notifications
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="pushNotifications" checked>
+                                <label class="form-check-label" for="pushNotifications">
+                                    Push Notifications
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="soundAlerts" checked>
+                                <label class="form-check-label" for="soundAlerts">
+                                    Sound Alerts
+                                </label>
+                            </div>
+                            <hr>
+                            <h6>Notification Types</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="notifyAlerts" checked>
+                                <label class="form-check-label" for="notifyAlerts">
+                                    Alert Notifications
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="notifyDevices" checked>
+                                <label class="form-check-label" for="notifyDevices">
+                                    Device Status Updates
+                                </label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="notifySystem">
+                                <label class="form-check-label" for="notifySystem">
+                                    System Updates
+                                </label>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveNotificationSettings()">Save Preferences</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Settings -->
+                <div class="tab-pane fade" id="alert-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Alert Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Heart Rate Threshold (bpm)</label>
+                                <input type="number" class="form-control" id="hrThreshold" value="100">
+                                <small class="text-muted">Alert when heart rate exceeds this value</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Temperature Threshold (°C)</label>
+                                <input type="number" step="0.1" class="form-control" id="tempThreshold" value="38.5">
+                                <small class="text-muted">Alert when temperature exceeds this value</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">AI Confidence Threshold</label>
+                                <input type="range" class="form-range" id="aiThreshold" min="0" max="1" step="0.1" value="0.5">
+                                <small class="text-muted">Current: <span id="aiThresholdValue">0.5</span></small>
+                            </div>
+                            <hr>
+                            <h6>Emergency Contacts</h6>
+                            <div id="emergencyContacts">
+                                <div class="input-group mb-2">
+                                    <input type="tel" class="form-control" placeholder="+91 1234567890">
+                                    <button class="btn btn-outline-danger" type="button">✖</button>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="addEmergencyContact()">+ Add Contact</button>
+                            <hr>
+                            <button class="btn btn-primary" onclick="saveAlertSettings()">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="tab-pane fade" id="security-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="mb-3">Change Password</h6>
+                            <form id="passwordForm" onsubmit="changePassword(event)">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Password</label>
+                                    <input type="password" class="form-control" name="currentPassword" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">New Password</label>
+                                    <input type="password" class="form-control" name="newPassword" required minlength="6">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" name="confirmPassword" required minlength="6">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Change Password</button>
+                            </form>
+                            <hr>
+                            <h6 class="mb-3">Two-Factor Authentication</h6>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="enable2FA">
+                                <label class="form-check-label" for="enable2FA">
+                                    Enable Two-Factor Authentication
+                                </label>
+                            </div>
+                            <hr>
+                            <h6 class="mb-3">Active Sessions</h6>
+                            <div class="alert alert-info">
+                                <strong>Current Session:</strong> This device<br>
+                                <small class="text-muted">Last active: Just now</small>
+                            </div>
+                            <button class="btn btn-outline-danger" onclick="logoutAllDevices()">Logout All Devices</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Settings -->
+                <div class="tab-pane fade" id="device-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Device Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Data Sync Interval (seconds)</label>
+                                <select class="form-select" id="syncInterval">
+                                    <option value="5">5 seconds (High frequency)</option>
+                                    <option value="10" selected>10 seconds (Recommended)</option>
+                                    <option value="30">30 seconds (Battery saving)</option>
+                                    <option value="60">60 seconds (Low frequency)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Audio Recording Quality</label>
+                                <select class="form-select" id="audioQuality">
+                                    <option value="low">Low (8kHz)</option>
+                                    <option value="medium" selected>Medium (16kHz)</option>
+                                    <option value="high">High (44.1kHz)</option>
+                                </select>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="autoAudioCapture" checked>
+                                <label class="form-check-label" for="autoAudioCapture">
+                                    Automatic Audio Capture on Alert
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="gpsTracking" checked>
+                                <label class="form-check-label" for="gpsTracking">
+                                    Enable GPS Tracking
+                                </label>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveDeviceSettings()">Save Settings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', loadSettings);
+
+function loadSettings() {
+    const token = localStorage.getItem('token');
+    
+    fetch('/api/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(user => {
+        document.getElementById('profileName').value = user.name || '';
+        document.getElementById('profileEmail').value = user.email || '';
+    });
+}
+
+function updateProfile(event) {
+    event.preventDefault();
+    // API call would go here
+    alert('Profile updated successfully!');
+}
+
+function saveNotificationSettings() {
+    // API call would go here
+    alert('Notification settings saved!');
+}
+
+function saveAlertSettings() {
+    // API call would go here
+    alert('Alert settings saved!');
+}
+
+function changePassword(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    
+    if (formData.get('newPassword') !== formData.get('confirmPassword')) {
+        alert('Passwords do not match!');
+        return;
+    }
+    
+    // API call would go here
+    alert('Password changed successfully!');
+    event.target.reset();
+}
+
+function saveDeviceSettings() {
+    // API call would go here
+    alert('Device settings saved!');
+}
+
+function addEmergencyContact() {
+    const container = document.getElementById('emergencyContacts');
+    const newContact = document.createElement('div');
+    newContact.className = 'input-group mb-2';
+    newContact.innerHTML = `
+        <input type="tel" class="form-control" placeholder="+91 1234567890">
+        <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove()">✖</button>
+    `;
+    container.appendChild(newContact);
+}
+
+function logoutAllDevices() {
+    if (confirm('This will logout all active sessions. Continue?')) {
+        // API call would go here
+        alert('All devices logged out. Please login again.');
+        window.location.href = '/';
+    }
+}
+
+// Update AI threshold display
+document.getElementById('aiThreshold')?.addEventListener('input', function(e) {
+    document.getElementById('aiThresholdValue').textContent = e.target.value;
+});
+</script>
+{% endblock %}

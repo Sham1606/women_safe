@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Help - Shield System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">❓ Help & Documentation</h1>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group sticky-top" style="top: 80px;">
+                <a href="#getting-started" class="list-group-item list-group-item-action">Getting Started</a>
+                <a href="#devices" class="list-group-item list-group-item-action">Managing Devices</a>
+                <a href="#alerts" class="list-group-item list-group-item-action">Understanding Alerts</a>
+                <a href="#monitoring" class="list-group-item list-group-item-action">Monitoring</a>
+                <a href="#troubleshooting" class="list-group-item list-group-item-action">Troubleshooting</a>
+                <a href="#faq" class="list-group-item list-group-item-action">FAQ</a>
+                <a href="#contact" class="list-group-item list-group-item-action">Contact Support</a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <!-- Getting Started -->
+            <section id="getting-started" class="mb-5">
+                <h2>🚀 Getting Started</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Welcome to Shield System!</h5>
+                        <p>Shield is an AI-powered safety platform that provides real-time distress detection and emergency response.</p>
+                        
+                        <h6 class="mt-3">Quick Start:</h6>
+                        <ol>
+                            <li>Register an account with your email</li>
+                            <li>Add your wearable device using its UID</li>
+                            <li>Configure alert preferences in Settings</li>
+                            <li>Monitor device status on Dashboard</li>
+                        </ol>
+                        
+                        <div class="alert alert-info">
+                            <strong>Tip:</strong> Use the Device Simulator page to test the system without physical hardware!
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Devices -->
+            <section id="devices" class="mb-5">
+                <h2>📱 Managing Devices</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Adding a Device</h5>
+                        <p>To register a new device:</p>
+                        <ol>
+                            <li>Go to <strong>Dashboard</strong> or <strong>Device Management</strong></li>
+                            <li>Click the <kbd>+ Add Device</kbd> button</li>
+                            <li>Enter the Device UID (found on your wearable)</li>
+                            <li>Click <kbd>Add to Profile</kbd></li>
+                        </ol>
+                        
+                        <h5 class="mt-4">Device Status Indicators</h5>
+                        <ul>
+                            <li><span class="badge bg-success">Online</span> - Device is active and sending data</li>
+                            <li><span class="badge bg-secondary">Offline</span> - Device hasn't sent data recently</li>
+                            <li><span class="badge bg-danger">Alert</span> - Device has triggered an active alert</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Alerts -->
+            <section id="alerts" class="mb-5">
+                <h2>🚨 Understanding Alerts</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <h5>How Alerts Are Generated</h5>
+                        <p>Shield uses multiple factors to detect distress:</p>
+                        
+                        <h6>1. AI Stress Detection (60% weight)</h6>
+                        <p>Voice analysis detects stress patterns in speech. Confidence > 0.5 contributes to alert.</p>
+                        
+                        <h6>2. Vital Signs (40% weight)</h6>
+                        <ul>
+                            <li>Heart Rate > 100 bpm (30% weight)</li>
+                            <li>Temperature > 38.5°C (10% weight)</li>
+                        </ul>
+                        
+                        <h6>3. Manual SOS Button</h6>
+                        <p>Pressing the SOS button immediately creates a HIGH priority alert, overriding all thresholds.</p>
+                        
+                        <div class="alert alert-warning mt-3">
+                            <strong>Distress Formula:</strong><br>
+                            <code>Score = (AI × 0.6) + (HR_flag × 0.3) + (Temp_flag × 0.1)</code><br>
+                            <small>Alert triggered when Score > 0.5 OR Manual SOS</small>
+                        </div>
+                        
+                        <h5 class="mt-4">Alert Status Flow</h5>
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-danger me-2">NEW</span>
+                            <span class="me-2">→</span>
+                            <span class="badge bg-warning me-2">IN_PROGRESS</span>
+                            <span class="me-2">→</span>
+                            <span class="badge bg-success">RESOLVED</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Monitoring -->
+            <section id="monitoring" class="mb-5">
+                <h2>📊 Monitoring</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <h5>Real-Time Monitoring Features</h5>
+                        
+                        <h6>Dashboard</h6>
+                        <p>View all your devices with latest vitals and status. Auto-refreshes every 30 seconds.</p>
+                        
+                        <h6>Live Monitor</h6>
+                        <p>Dedicated monitoring page with real-time charts and event feed. Updates every 5 seconds.</p>
+                        
+                        <h6>Map Tracking</h6>
+                        <p>Interactive map shows device locations with color-coded status markers:</p>
+                        <ul>
+                            <li>🔵 Blue marker - Normal device</li>
+                            <li>🔴 Red marker - Active alert</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Troubleshooting -->
+            <section id="troubleshooting" class="mb-5">
+                <h2>🔧 Troubleshooting</h2>
+                <div class="accordion" id="troubleshootingAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#trouble1">
+                                Device shows as Offline
+                            </button>
+                        </h2>
+                        <div id="trouble1" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Check device battery level</li>
+                                    <li>Ensure device has internet/cellular connection</li>
+                                    <li>Verify device UID is correct</li>
+                                    <li>Restart the device</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#trouble2">
+                                Not receiving alerts
+                            </button>
+                        </h2>
+                        <div id="trouble2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Check notification settings in Settings page</li>
+                                    <li>Verify email/phone number is correct</li>
+                                    <li>Check alert thresholds configuration</li>
+                                    <li>Ensure device is online and sending data</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#trouble3">
+                                Map not showing location
+                            </button>
+                        </h2>
+                        <div id="trouble3" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Enable GPS in device settings</li>
+                                    <li>Check internet connection</li>
+                                    <li>Verify GPS permissions are granted</li>
+                                    <li>Wait for GPS signal acquisition (may take 30-60s)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section id="faq" class="mb-5">
+                <h2>💡 Frequently Asked Questions</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <h6>What is the AI detection accuracy?</h6>
+                        <p>The AI model achieves ~85-90% accuracy in stress detection based on voice patterns.</p>
+                        
+                        <h6>How long does battery last?</h6>
+                        <p>Typical battery life is 24-48 hours depending on sync frequency and GPS usage.</p>
+                        
+                        <h6>Can I have multiple devices?</h6>
+                        <p>Yes! Guardians can register and monitor unlimited devices.</p>
+                        
+                        <h6>Who can see my alerts?</h6>
+                        <p>Guardians see their own device alerts. Police and Admin roles can see all system alerts.</p>
+                        
+                        <h6>Is my data secure?</h6>
+                        <p>Yes. All data is encrypted in transit (HTTPS) and passwords are hashed. Evidence files are access-controlled.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact -->
+            <section id="contact" class="mb-5">
+                <h2>📧 Contact Support</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <p>Need help? Get in touch with our support team:</p>
+                        <ul class="list-unstyled">
+                            <li><strong>Email:</strong> support@shieldsystem.com</li>
+                            <li><strong>Phone:</strong> +91 1800-123-4567 (24/7)</li>
+                            <li><strong>GitHub:</strong> <a href="https://github.com/Sham1606/women_safe" target="_blank">github.com/Sham1606/women_safe</a></li>
+                        </ul>
+                        
+                        <div class="mt-4">
+                            <h6>Report a Bug</h6>
+                            <p>Found an issue? Please report it on our <a href="https://github.com/Sham1606/women_safe/issues" target="_blank">GitHub Issues</a> page.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<style>
+section {
+    scroll-margin-top: 80px;
+}
+</style>
+{% endblock %}
