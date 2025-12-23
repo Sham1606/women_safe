@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Panel - Shield System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="glass-card p-3">
+                <h5 class="text-premium mb-3">🛡️ Admin Panel</h5>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#stats" data-bs-toggle="tab">
+                        <i class="bi bi-graph-up"></i> Statistics
+                    </a>
+                    <a class="nav-link" href="#users" data-bs-toggle="tab">
+                        <i class="bi bi-people"></i> User Management
+                    </a>
+                    <a class="nav-link" href="#devices" data-bs-toggle="tab">
+                        <i class="bi bi-phone"></i> Device Management
+                    </a>
+                    <a class="nav-link" href="#alerts" data-bs-toggle="tab">
+                        <i class="bi bi-bell"></i> Alert Management
+                    </a>
+                    <a class="nav-link" href="#analytics" data-bs-toggle="tab">
+                        <i class="bi bi-bar-chart"></i> Analytics
+                    </a>
+                    <a class="nav-link" href="#system" data-bs-toggle="tab">
+                        <i class="bi bi-gear"></i> System Settings
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Statistics Tab -->
+                <div class="tab-pane fade show active" id="stats">
+                    <h4 class="mb-4">System Statistics</h4>
+                    
+                    <!-- Stats Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="glass-card p-3 text-center">
+                                <h2 class="text-primary" id="totalUsers">0</h2>
+                                <small class="text-muted">Total Users</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-card p-3 text-center">
+                                <h2 class="text-success" id="activeDevices">0</h2>
+                                <small class="text-muted">Active Devices</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-card p-3 text-center">
+                                <h2 class="text-danger" id="newAlerts">0</h2>
+                                <small class="text-muted">New Alerts</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="glass-card p-3 text-center">
+                                <h2 class="text-warning" id="resolvedToday">0</h2>
+                                <small class="text-muted">Resolved Today</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="glass-card p-3">
+                        <h5 class="mb-3">Recent Activity</h5>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Device</th>
+                                        <th>Event</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivityTable">
+                                    <tr>
+                                        <td colspan="4" class="text-center">
+                                            <div class="spinner-border spinner-border-sm" role="status"></div>
+                                            Loading...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div class="tab-pane fade" id="users">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>User Management</h4>
+                        <button class="btn btn-premium btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                            <i class="bi bi-plus"></i> Add User
+                        </button>
+                    </div>
+                    
+                    <div class="glass-card p-3">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="userSearch" placeholder="Search users...">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Devices</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Devices Tab -->
+                <div class="tab-pane fade" id="devices">
+                    <h4 class="mb-4">Device Management</h4>
+                    
+                    <div class="glass-card p-3">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="deviceSearch" placeholder="Search devices...">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Device UID</th>
+                                        <th>Owner</th>
+                                        <th>Battery</th>
+                                        <th>Last Seen</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="devicesTable">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Tab -->
+                <div class="tab-pane fade" id="alerts">
+                    <h4 class="mb-4">Alert Management</h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select class="form-select" id="alertStatusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="NEW">New</option>
+                                <option value="IN_PROGRESS">In Progress</option>
+                                <option value="RESOLVED">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-select" id="alertSeverityFilter">
+                                <option value="">All Severities</option>
+                                <option value="HIGH">High</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="LOW">Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-3">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Device</th>
+                                        <th>Reason</th>
+                                        <th>Severity</th>
+                                        <th>Status</th>
+                                        <th>Time</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alertsTable">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div class="tab-pane fade" id="analytics">
+                    <h4 class="mb-4">Analytics Dashboard</h4>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="glass-card p-3">
+                                <h6>Alerts by Day (Last 7 Days)</h6>
+                                <canvas id="alertsChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="glass-card p-3">
+                                <h6>Alert Types Distribution</h6>
+                                <canvas id="alertTypesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Settings Tab -->
+                <div class="tab-pane fade" id="system">
+                    <h4 class="mb-4">System Settings</h4>
+                    
+                    <div class="glass-card p-4">
+                        <form id="systemSettingsForm">
+                            <h6 class="mb-3">Alert Thresholds</h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Heart Rate Threshold (bpm)</label>
+                                    <input type="number" class="form-control" value="100">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Temperature Threshold (°C)</label>
+                                    <input type="number" class="form-control" value="38.5" step="0.1">
+                                </div>
+                            </div>
+
+                            <h6 class="mb-3 mt-4">AI Model Settings</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Confidence Threshold</label>
+                                <input type="range" class="form-range" min="0" max="1" step="0.01" value="0.5">
+                                <small class="text-muted">Current: 0.5</small>
+                            </div>
+
+                            <h6 class="mb-3 mt-4">Notification Settings</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="emailNotif" checked>
+                                <label class="form-check-label" for="emailNotif">
+                                    Email Notifications
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="smsNotif">
+                                <label class="form-check-label" for="smsNotif">
+                                    SMS Notifications
+                                </label>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-premium">Save Settings</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-card bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" name="role" required>
+                            <option value="GUARDIAN">Guardian</option>
+                            <option value="POLICE">Police</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-premium w-100">Create User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/admin_panel.js') }}"></script>
+{% endblock %}

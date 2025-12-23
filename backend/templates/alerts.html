@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Alerts - Shield System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3">
+            <div class="glass-card p-3 mb-3">
+                <h5 class="mb-3">🔍 Filters</h5>
+                
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Status</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="NEW" id="statusNew" checked>
+                        <label class="form-check-label" for="statusNew">
+                            <span class="badge bg-danger">NEW</span>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="IN_PROGRESS" id="statusProgress" checked>
+                        <label class="form-check-label" for="statusProgress">
+                            <span class="badge bg-warning">IN PROGRESS</span>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="RESOLVED" id="statusResolved">
+                        <label class="form-check-label" for="statusResolved">
+                            <span class="badge bg-success">RESOLVED</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Severity</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="HIGH" id="severityHigh" checked>
+                        <label class="form-check-label" for="severityHigh">High</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="MEDIUM" id="severityMedium" checked>
+                        <label class="form-check-label" for="severityMedium">Medium</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="LOW" id="severityLow" checked>
+                        <label class="form-check-label" for="severityLow">Low</label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Time Range</label>
+                    <select class="form-select" id="timeRange">
+                        <option value="all">All Time</option>
+                        <option value="today" selected>Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-premium w-100" id="applyFilters">
+                    Apply Filters
+                </button>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="glass-card p-3">
+                <h6 class="mb-3">Summary</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Total Alerts:</span>
+                    <strong id="totalAlerts">0</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-danger">New:</span>
+                    <strong id="newCount">0</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-warning">In Progress:</span>
+                    <strong id="progressCount">0</strong>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-success">Resolved:</span>
+                    <strong id="resolvedCount">0</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts List -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>🚨 Alerts Dashboard</h4>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control" id="searchAlerts" placeholder="Search..." style="width: 250px;">
+                    <button class="btn btn-outline-primary" id="refreshAlerts">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alerts Grid -->
+            <div id="alertsContainer" class="row g-3">
+                <!-- Loading State -->
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Loading alerts...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Detail Modal -->
+<div class="modal fade" id="alertDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-card bg-dark border-danger">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Alert Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="glass-card p-3">
+                            <h6>Alert Information</h6>
+                            <p class="mb-1"><strong>ID:</strong> <span id="modalAlertId"></span></p>
+                            <p class="mb-1"><strong>Device:</strong> <span id="modalDevice"></span></p>
+                            <p class="mb-1"><strong>Reason:</strong> <span id="modalReason"></span></p>
+                            <p class="mb-1"><strong>Severity:</strong> <span id="modalSeverity"></span></p>
+                            <p class="mb-1"><strong>Status:</strong> <span id="modalStatus"></span></p>
+                            <p class="mb-0"><strong>Time:</strong> <span id="modalTime"></span></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="glass-card p-3">
+                            <h6>Location</h6>
+                            <div id="modalMap" style="height: 200px; border-radius: 8px; overflow: hidden;"></div>
+                            <p class="mt-2 mb-0 small">
+                                <strong>Coordinates:</strong> <span id="modalCoords"></span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="glass-card p-3">
+                            <h6>Vital Signs Snapshot</h6>
+                            <div class="row g-2" id="modalVitals">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="glass-card p-3">
+                            <h6>Evidence Files</h6>
+                            <div id="modalEvidence">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <button class="btn btn-warning btn-sm" onclick="updateAlertStatus('IN_PROGRESS')">
+                            <i class="bi bi-clock"></i> In Progress
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="updateAlertStatus('RESOLVED')">
+                            <i class="bi bi-check-circle"></i> Resolve
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="{{ url_for('static', filename='js/alerts.js') }}"></script>
+{% endblock %}

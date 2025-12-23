@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics - Shield System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h3 class="text-premium mb-4">📊 Analytics Dashboard</h3>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 id="totalEventsToday">0</h3>
+                        <small class="text-muted">Events Today</small>
+                    </div>
+                    <i class="bi bi-graph-up text-primary" style="font-size: 40px;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 id="avgResponseTime">0</h3>
+                        <small class="text-muted">Avg Response (min)</small>
+                    </div>
+                    <i class="bi bi-clock text-warning" style="font-size: 40px;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 id="activeDevicesNow">0</h3>
+                        <small class="text-muted">Active Devices</small>
+                    </div>
+                    <i class="bi bi-phone text-success" style="font-size: 40px;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 id="resolutionRate">0%</h3>
+                        <small class="text-muted">Resolution Rate</small>
+                    </div>
+                    <i class="bi bi-check-circle text-info" style="font-size: 40px;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-8">
+            <div class="glass-card p-3">
+                <h5 class="mb-3">Alerts Over Time (Last 30 Days)</h5>
+                <canvas id="alertsTimelineChart" height="80"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="glass-card p-3">
+                <h5 class="mb-3">Alert Status Distribution</h5>
+                <canvas id="alertStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row g-3 mb-3">
+        <div class="col-lg-6">
+            <div class="glass-card p-3">
+                <h5 class="mb-3">Alert Reasons</h5>
+                <canvas id="alertReasonsChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="glass-card p-3">
+                <h5 class="mb-3">Device Activity Heatmap</h5>
+                <canvas id="deviceActivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 3 -->
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="glass-card p-3">
+                <h5 class="mb-3">Top Active Devices</h5>
+                <div class="list-group list-group-flush" id="topDevicesList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="glass-card p-3">
+                <h5 class="mb-3">Average Vital Signs Trends</h5>
+                <canvas id="vitalsChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

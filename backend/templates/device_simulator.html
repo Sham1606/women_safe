@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Device Simulator - Shield System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass-card p-4">
+                <h3 class="text-premium mb-4">📱 Device Simulator</h3>
+                <p class="text-muted">Simulate wearable device data transmission for testing</p>
+
+                <div class="row g-4">
+                    <!-- Device Configuration -->
+                    <div class="col-md-6">
+                        <div class="glass-card p-3">
+                            <h5 class="mb-3">Device Configuration</h5>
+                            
+                            <form id="deviceSimForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Device UID</label>
+                                    <input type="text" class="form-control" id="deviceUid" value="SHIELD-001" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Heart Rate (bpm)</label>
+                                    <input type="range" class="form-range" id="heartRate" min="40" max="180" value="75">
+                                    <div class="d-flex justify-content-between">
+                                        <small>40</small>
+                                        <strong id="hrDisplay">75</strong>
+                                        <small>180</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Temperature (°C)</label>
+                                    <input type="range" class="form-range" id="temperature" min="35" max="42" step="0.1" value="36.5">
+                                    <div class="d-flex justify-content-between">
+                                        <small>35</small>
+                                        <strong id="tempDisplay">36.5</strong>
+                                        <small>42</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">SpO2 (%)</label>
+                                    <input type="range" class="form-range" id="spo2" min="80" max="100" value="98">
+                                    <div class="d-flex justify-content-between">
+                                        <small>80</small>
+                                        <strong id="spo2Display">98</strong>
+                                        <small>100</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Battery Level (%)</label>
+                                    <input type="range" class="form-range" id="battery" min="0" max="100" value="85">
+                                    <div class="d-flex justify-content-between">
+                                        <small>0</small>
+                                        <strong id="batteryDisplay">85</strong>
+                                        <small>100</small>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Latitude</label>
+                                        <input type="number" class="form-control" id="latitude" value="11.9416" step="0.0001">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Longitude</label>
+                                        <input type="number" class="form-control" id="longitude" value="79.8083" step="0.0001">
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Audio File (Optional)</label>
+                                    <input type="file" class="form-control" id="audioFile" accept="audio/*">
+                                </div>
+
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="manualSos">
+                                    <label class="form-check-label" for="manualSos">
+                                        🚨 Manual SOS Trigger
+                                    </label>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-premium">
+                                        <i class="bi bi-send"></i> Send Event
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" id="autoSendBtn">
+                                        <i class="bi bi-arrow-repeat"></i> Start Auto-Send (Every 30s)
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Response & History -->
+                    <div class="col-md-6">
+                        <!-- Live Preview -->
+                        <div class="glass-card p-3 mb-3">
+                            <h5 class="mb-3">Live Device State</h5>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="glass-card p-2 text-center">
+                                        <small class="text-muted">Heart Rate</small>
+                                        <h4 id="liveHr">75</h4>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="glass-card p-2 text-center">
+                                        <small class="text-muted">Temperature</small>
+                                        <h4 id="liveTemp">36.5</h4>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="glass-card p-2 text-center">
+                                        <small class="text-muted">SpO2</small>
+                                        <h4 id="liveSpo2">98</h4>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="glass-card p-2 text-center">
+                                        <small class="text-muted">Battery</small>
+                                        <h4 id="liveBattery">85</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Response Log -->
+                        <div class="glass-card p-3">
+                            <h5 class="mb-3">Response Log</h5>
+                            <div id="responseLog" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-muted text-center py-3">
+                                    <small>Send an event to see responses</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preset Scenarios -->
+                <div class="glass-card p-3 mt-4">
+                    <h5 class="mb-3">Quick Scenarios</h5>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-success w-100" onclick="loadScenario('normal')">
+                                🟢 Normal
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-warning w-100" onclick="loadScenario('elevated')">
+                                🟡 Elevated Vitals
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-danger w-100" onclick="loadScenario('stress')">
+                                🔴 High Stress
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger w-100" onclick="loadScenario('emergency')">
+                                🚨 Emergency SOS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/device_simulator.js') }}"></script>
+{% endblock %}
