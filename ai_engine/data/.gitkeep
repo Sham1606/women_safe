@@ -1,0 +1,31 @@
+# Data directory for AI Engine
+
+## Structure:
+
+```
+data/
+├── raw/
+│   ├── stressed/       # Audio files with stress/distress
+│   └── non_stressed/   # Normal/calm audio files
+├── processed/          # Preprocessed audio
+└── augmented/          # Augmented training data
+```
+
+## Audio Format:
+- Format: WAV (preferred) or MP3
+- Sample Rate: 22050 Hz (will be resampled if different)
+- Duration: Any (will be processed appropriately)
+- Channels: Mono (stereo will be converted)
+
+## Data Sources:
+You can use existing datasets like:
+- RAVDESS (Ryerson Audio-Visual Database of Emotional Speech)
+- TESS (Toronto Emotional Speech Set)
+- CREMA-D (Crowd-sourced Emotional Multimodal Actors Dataset)
+- Your own recorded samples
+
+## Labeling:
+- Stressed: distress calls, screams, panicked speech, crying
+- Non-stressed: normal conversation, calm speech
+
+Place audio files in respective directories before training.

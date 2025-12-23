@@ -1,0 +1,6 @@
+# Logs directory
+
+Application logs will be stored here:
+- training_*.log
+- inference_*.log
+- error_*.log
