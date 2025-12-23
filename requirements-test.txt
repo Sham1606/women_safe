@@ -1,0 +1,17 @@
+# Testing dependencies
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+
+# Required for audio generation in tests
+numpy==1.24.3
+scipy==1.11.4
+
+# Main application dependencies (include from requirements.txt)
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-CORS==4.0.0
+Flask-JWT-Extended==4.5.3
+Flask-Migrate==4.0.5
+Werkzeug==3.0.1
+PyJWT==2.8.0
