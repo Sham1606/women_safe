@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:5000/api';
+const API_URL = '/api';
 let currentUser = null;
 let currentToken = null;
 let map = null;
@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const userStr = localStorage.getItem('user');
 
     if (!token || !userStr) {
-        window.location.href = 'index.html';
+        // Redirect to Flask landing page
+        window.location.href = '/';
         return;
     }
 
@@ -28,11 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentUser.role === 'GUARDIAN') {
         document.getElementById('guardianView').classList.remove('d-none');
         refreshGuardianData();
-        setInterval(refreshGuardianData, 3000);
+        setInterval(refreshGuardianData, 30000); // Every 30 seconds
     } else {
         document.getElementById('adminView').classList.remove('d-none');
         refreshAdminData();
-        setInterval(refreshAdminData, 5000);
+        setInterval(refreshAdminData, 30000);
     }
     
     document.getElementById('addDeviceForm')?.addEventListener('submit', registerDevice);
@@ -48,7 +49,7 @@ function initMap() {
 
 function logout() {
     localStorage.clear();
-    window.location.href = 'index.html';
+    window.location.href = '/';
 }
 
 // GUARDIAN LOGIC
@@ -57,21 +58,34 @@ async function refreshGuardianData() {
         const res = await fetch(`${API_URL}/device/my-devices`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
+        
+        if (!res.ok) {
+            if (res.status === 401) {
+                // Token expired, logout
+                logout();
+                return;
+            }
+            throw new Error('Failed to fetch devices');
+        }
+        
         const devices = await res.json();
         renderDevices(devices);
         updateMapMarkers(devices);
-    } catch (e) { console.error("Guardian pull error:", e); }
+    } catch (e) { 
+        console.error("Guardian pull error:", e); 
+    }
 }
 
 function renderDevices(devices) {
     const container = document.getElementById('deviceList');
     if (devices.length === 0) {
-        container.innerHTML = '<div class="col-12 py-4 text-center text-muted">No devices linked to your account.</div>';
+        container.innerHTML = '<div class="col-12 py-4 text-center text-muted">No devices linked to your account. Click + to add one.</div>';
         return;
     }
 
     container.innerHTML = devices.map(d => {
-        const isStressed = d.active_alert.status === 'NEW' || d.active_alert.status === 'IN_PROGRESS';
+        const hasAlert = d.active_alert && d.active_alert.id;
+        const isStressed = hasAlert && (d.active_alert.status === 'NEW' || d.active_alert.status === 'IN_PROGRESS');
         const statusClass = isStressed ? 'status-stressed' : 'status-active';
         return `
         <div class="col-12">
@@ -89,7 +103,7 @@ function renderDevices(devices) {
                 </div>
                 <div class="x-small text-muted" style="font-size: 0.7rem;">
                     AI SENSE: <span class="${d.latest_vitals.ai_label === 'stressed' ? 'text-danger fw-bold' : 'text-success'}">
-                        ${d.latest_vitals.ai_label.toUpperCase()} (${(d.latest_vitals.ai_conf * 100).toFixed(0)}%)
+                        ${(d.latest_vitals.ai_label || 'normal').toUpperCase()} (${(d.latest_vitals.ai_conf * 100).toFixed(0)}%)
                     </span>
                 </div>
                 ${isStressed ? `
@@ -114,13 +128,22 @@ async function registerDevice(e) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${currentToken}` 
             },
-            body: JSON.stringify({ email: currentUser.email, device_uid: uid })
+            body: JSON.stringify({ device_uid: uid })
         });
+        
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('addDeviceModal')).hide();
+            e.target.reset();
+            alert('Device added successfully!');
             refreshGuardianData();
-        } else { alert('Failed to register device.'); }
-    } catch (err) { console.error(err); }
+        } else { 
+            const error = await res.json();
+            alert('Failed to register device: ' + error.message); 
+        }
+    } catch (err) { 
+        console.error(err);
+        alert('Error: ' + err.message);
+    }
 }
 
 // ADMIN LOGIC
@@ -129,6 +152,15 @@ async function refreshAdminData() {
         const resStats = await fetch(`${API_URL}/admin/stats`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
+        
+        if (!resStats.ok) {
+            if (resStats.status === 401) {
+                logout();
+                return;
+            }
+            throw new Error('Failed to fetch stats');
+        }
+        
         const stats = await resStats.json();
         renderStats(stats);
 
@@ -138,7 +170,9 @@ async function refreshAdminData() {
         const alerts = await resAlerts.json();
         renderAlertTable(alerts);
         updateMapMarkers(alerts, true);
-    } catch (e) { console.error("Admin pull error:", e); }
+    } catch (e) { 
+        console.error("Admin pull error:", e); 
+    }
 }
 
 function renderStats(stats) {
@@ -149,11 +183,15 @@ function renderStats(stats) {
 
 function renderAlertTable(alerts) {
     const tbody = document.getElementById('alertTableBody');
-    tbody.innerHTML = alerts.map(a => `
+    if (alerts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No alerts</td></tr>';
+        return;
+    }
+    tbody.innerHTML = alerts.slice(0, 10).map(a => `
         <tr onclick="viewAlert(${a.id})" style="cursor: pointer;">
             <td>${new Date(a.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
             <td>${a.device_uid}</td>
-            <td><span class="badge bg-${a.status === 'NEW' ? 'danger' : 'success'}">${a.status}</span></td>
+            <td><span class="badge bg-${a.status === 'NEW' ? 'danger' : a.status === 'IN_PROGRESS' ? 'warning' : 'success'}">${a.status}</span></td>
         </tr>
     `).join('');
 }
@@ -161,7 +199,7 @@ function renderAlertTable(alerts) {
 // SHARED UTILS
 function updateMapMarkers(data, isAdmin = false) {
     data.forEach(item => {
-        const id = isAdmin ? `alert_${item.id}` : `dev_${item.id}`;
+        const id = isAdmin ? `alert_${item.id}` : `dev_${item.uid}`;
         const lat = isAdmin ? item.lat : item.location.lat;
         const lng = isAdmin ? item.lng : item.location.lng;
         
@@ -197,9 +235,9 @@ async function viewAlert(id) {
         if (data.evidence && data.evidence.length > 0) {
             evContainer.innerHTML = data.evidence.map(e => `
                 <div class="mb-2">
-                    <p class="x-small text-muted mb-1">Evidence Reference Content</p>
+                    <p class="x-small text-muted mb-1">Evidence: ${e.type}</p>
                     <audio controls class="w-100" style="height: 30px;">
-                        <source src="${API_URL.replace('/api', '')}/static/evidence/${e.path}" type="audio/wav">
+                        <source src="/static/evidence/${e.path}" type="audio/wav">
                     </audio>
                 </div>
             `).join('');
@@ -209,7 +247,10 @@ async function viewAlert(id) {
 
         const modal = new bootstrap.Modal(document.getElementById('alertDetailModal'));
         modal.show();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error(e);
+        alert('Error loading alert details');
+    }
 }
 
 async function updateAlertStatusLocally(newStatus) {
@@ -225,7 +266,13 @@ async function updateAlertStatusLocally(newStatus) {
         });
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('alertDetailModal')).hide();
+            alert('Alert status updated!');
             if (currentUser.role === 'GUARDIAN') refreshGuardianData(); else refreshAdminData();
+        } else {
+            alert('Failed to update status');
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error(e);
+        alert('Error updating alert status');
+    }
 }
