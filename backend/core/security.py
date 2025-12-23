@@ -1,104 +1,126 @@
-"""Security Utilities
+"""Security utilities for authentication and authorization"""
 
-JWT token handling and password hashing.
-"""
-
-from datetime import datetime, timedelta
-from typing import Optional
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-import logging
-
-from .config import settings
-
-logger = logging.getLogger(__name__)
-
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from functools import wraps
+from flask import jsonify
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt
+from backend import bcrypt
+import secrets
+import string
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify password against hash"""
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password: str) -> str:
-    """Hash password"""
-    return pwd_context.hash(password)
-
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create JWT access token
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt
     
     Args:
-        data: Data to encode in token
-        expires_delta: Token expiration time
+        password: Plain text password
         
     Returns:
-        JWT token string
+        Hashed password
     """
-    to_encode = data.copy()
-    
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    
-    return encoded_jwt
+    return bcrypt.generate_password_hash(password).decode('utf-8')
 
 
-def verify_token(token: str) -> Optional[dict]:
-    """Verify and decode JWT token
+def verify_password(password: str, password_hash: str) -> bool:
+    """Verify a password against its hash
     
     Args:
-        token: JWT token string
+        password: Plain text password
+        password_hash: Hashed password
         
     Returns:
-        Decoded token data or None
+        True if password matches, False otherwise
     """
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        return payload
-    except JWTError as e:
-        logger.warning(f"Token verification failed: {e}")
-        return None
+    return bcrypt.check_password_hash(password_hash, password)
 
 
-def create_device_token(device_id: str) -> str:
-    """Create device authentication token for IoT devices
+def generate_device_token(length: int = 32) -> str:
+    """Generate a secure random token for IoT devices
     
     Args:
-        device_id: Unique device identifier
+        length: Token length
         
     Returns:
-        Device token
+        Random token string
     """
-    data = {
-        "device_id": device_id,
-        "type": "device"
-    }
-    # Device tokens don't expire
-    token = jwt.encode(data, settings.IOT_AUTH_SECRET, algorithm=settings.ALGORITHM)
-    return token
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 
-def verify_device_token(token: str) -> Optional[str]:
-    """Verify device token and extract device_id
+def role_required(*allowed_roles):
+    """Decorator to require specific user roles
     
     Args:
-        token: Device token
+        *allowed_roles: Variable number of allowed roles
         
-    Returns:
-        Device ID or None
+    Example:
+        @role_required('admin', 'police')
+        def admin_only_route():
+            ...
     """
-    try:
-        payload = jwt.decode(token, settings.IOT_AUTH_SECRET, algorithms=[settings.ALGORITHM])
-        if payload.get("type") == "device":
-            return payload.get("device_id")
-        return None
-    except JWTError as e:
-        logger.warning(f"Device token verification failed: {e}")
-        return None
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            verify_jwt_in_request()
+            claims = get_jwt()
+            user_role = claims.get('role')
+            
+            if user_role not in allowed_roles:
+                return jsonify({
+                    'success': False,
+                    'error': 'Forbidden',
+                    'message': f'This endpoint requires one of these roles: {", ".join(allowed_roles)}'
+                }), 403
+            
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def device_token_required(fn):
+    """Decorator to require valid device token (for IoT endpoints)
+    
+    Checks for 'X-Device-Token' header
+    """
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        from flask import request
+        from backend.models.device import Device
+        
+        device_token = request.headers.get('X-Device-Token')
+        
+        if not device_token:
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized',
+                'message': 'Device token required'
+            }), 401
+        
+        # Verify device token
+        device = Device.query.filter_by(device_token=device_token).first()
+        
+        if not device:
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized',
+                'message': 'Invalid device token'
+            }), 401
+        
+        # Add device to request context
+        request.device = device
+        
+        return fn(*args, **kwargs)
+    return wrapper
+
+
+def get_current_user():
+    """Get current authenticated user from JWT
+    
+    Returns:
+        User object or None
+    """
+    from backend.models.user import User
+    
+    user_id = get_jwt_identity()
+    if user_id:
+        return User.query.get(user_id)
+    return None
