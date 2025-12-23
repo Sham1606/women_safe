@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women Safety Device - Dashboard</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Leaflet for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shield-check"></i> Women Safety Device
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="userName">User</a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link" id="userRole" style="color: #ffc107;">Role</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout()">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Container -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 bg-light sidebar">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#dashboard" onclick="showSection('dashboard')">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#alerts" onclick="showSection('alerts')">
+                            <i class="bi bi-exclamation-triangle"></i> Alerts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#devices" onclick="showSection('devices')">
+                            <i class="bi bi-phone"></i> Devices
+                        </a>
+                    </li>
+                    <li class="nav-item" id="evidenceNav">
+                        <a class="nav-link" href="#evidence" onclick="showSection('evidence')">
+                            <i class="bi bi-camera"></i> Evidence
+                        </a>
+                    </li>
+                    <li class="nav-item" id="adminNav" style="display: none;">
+                        <a class="nav-link" href="#admin" onclick="showSection('admin')">
+                            <i class="bi bi-gear"></i> Admin Panel
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10">
+                <!-- Dashboard Overview Section -->
+                <div id="dashboardSection" class="content-section">
+                    <h2>Dashboard Overview</h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-phone"></i> Devices</h5>
+                                    <h2 id="deviceCount">-</h2>
+                                    <p class="card-text">Active Devices</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Alerts</h5>
+                                    <h2 id="alertCount">-</h2>
+                                    <p class="card-text">Active Alerts</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-check-circle"></i> Status</h5>
+                                    <h2 id="systemStatus">Normal</h2>
+                                    <p class="card-text">System Status</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-bell"></i> Notifications</h5>
+                                    <h2 id="notificationCount">0</h2>
+                                    <p class="card-text">Unread</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Alerts Table -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5><i class="bi bi-clock-history"></i> Recent Alerts</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-hover" id="recentAlertsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Device</th>
+                                        <th>Type</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Loading alerts...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Live Map -->
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5><i class="bi bi-geo-alt"></i> Live Device Tracking</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="map" style="height: 400px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts Section -->
+                <div id="alertsSection" class="content-section" style="display: none;">
+                    <h2>Alert Management</h2>
+                    <div id="alertsList" class="mt-4">
+                        <!-- Dynamic alerts will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Devices Section -->
+                <div id="devicesSection" class="content-section" style="display: none;">
+                    <h2>Device Management</h2>
+                    <button class="btn btn-primary mt-3" onclick="registerDevice()">Register New Device</button>
+                    <div id="devicesList" class="mt-4">
+                        <!-- Dynamic devices will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Evidence Section -->
+                <div id="evidenceSection" class="content-section" style="display: none;">
+                    <h2>Evidence Management</h2>
+                    <div id="evidenceGallery" class="mt-4">
+                        <!-- Dynamic evidence will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Admin Section (Police/Admin only) -->
+                <div id="adminSection" class="content-section" style="display: none;">
+                    <h2>Admin Panel</h2>
+                    <div class="mt-4">
+                        <!-- Admin functions -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Alert Modal -->
+    <div class="modal fade" id="emergencyModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-danger">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> EMERGENCY ALERT</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="emergencyModalBody">
+                    <!-- Emergency details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dismiss</button>
+                    <button type="button" class="btn btn-danger" onclick="acknowledgeAlert()">Acknowledge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Custom JS -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard-main.js"></script>
+    <script src="js/websocket.js"></script>
+</body>
+</html>
