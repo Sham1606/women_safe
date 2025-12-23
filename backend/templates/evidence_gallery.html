@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Evidence Gallery - Shield System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">📷 Evidence Gallery</h2>
+
+    <!-- Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Filter by Type</label>
+                    <select class="form-select" id="typeFilter" onchange="filterEvidence()">
+                        <option value="all">All Types</option>
+                        <option value="AUDIO">Audio</option>
+                        <option value="PHOTO">Photo</option>
+                        <option value="VIDEO">Video</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Date Range</label>
+                    <input type="date" class="form-control" id="dateFilter" onchange="filterEvidence()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Alert ID</label>
+                    <input type="number" class="form-control" id="alertFilter" placeholder="Enter alert ID">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-primary w-100" onclick="filterEvidence()">🔍 Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evidence Grid -->
+    <div id="evidenceGrid" class="row g-4">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Loading evidence...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Evidence Detail Modal -->
+<div class="modal fade" id="evidenceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="evidenceModalTitle">Evidence Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="evidenceModalBody">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="downloadBtn">
+                    💾 Download
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.evidence-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.evidence-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+}
+
+.evidence-thumbnail {
+    width: 100%;
+    height: 200px;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+
+.evidence-info {
+    padding: 1rem;
+}
+</style>
+
+<script>
+const API_BASE = '';
+let evidenceData = [];
+let filteredData = [];
+
+document.addEventListener('DOMContentLoaded', loadEvidence);
+
+function loadEvidence() {
+    const token = localStorage.getItem('token');
+    
+    fetch(`${API_BASE}/api/alerts`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(alerts => {
+        // Extract evidence from alerts
+        const promises = alerts.map(alert => 
+            fetch(`${API_BASE}/api/alerts/${alert.id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(res => res.json())
+        );
+        
+        return Promise.all(promises);
+    })
+    .then(alertDetails => {
+        evidenceData = [];
+        alertDetails.forEach(alert => {
+            if (alert.evidence && alert.evidence.length > 0) {
+                alert.evidence.forEach(ev => {
+                    evidenceData.push({
+                        ...ev,
+                        alert_id: alert.id,
+                        device_uid: alert.device_uid,
+                        alert_reason: alert.reason
+                    });
+                });
+            }
+        });
+        
+        filteredData = evidenceData;
+        renderEvidence();
+    })
+    .catch(err => {
+        console.error('Error loading evidence:', err);
+        document.getElementById('evidenceGrid').innerHTML = 
+            '<div class="col-12 text-center py-5"><p class="text-danger">Error loading evidence</p></div>';
+    });
+}
+
+function renderEvidence() {
+    const grid = document.getElementById('evidenceGrid');
+    
+    if (filteredData.length === 0) {
+        grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No evidence found</p></div>';
+        return;
+    }
+    
+    grid.innerHTML = filteredData.map((ev, index) => {
+        const icon = ev.type === 'AUDIO' ? '🎤' : ev.type === 'PHOTO' ? '📷' : '🎥';
+        const date = new Date(ev.captured_at).toLocaleString();
+        
+        return `
+            <div class="col-md-4 col-lg-3">
+                <div class="evidence-card" onclick="viewEvidence(${index})">
+                    <div class="evidence-thumbnail">${icon}</div>
+                    <div class="evidence-info">
+                        <h6>Alert #${ev.alert_id}</h6>
+                        <p class="mb-1 text-muted small">Type: ${ev.type}</p>
+                        <p class="mb-0 text-muted small">${date}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function viewEvidence(index) {
+    const ev = filteredData[index];
+    const modal = new bootstrap.Modal(document.getElementById('evidenceModal'));
+    
+    document.getElementById('evidenceModalTitle').textContent = `Evidence - Alert #${ev.alert_id}`;
+    
+    let content = `
+        <div class="mb-3">
+            <strong>Type:</strong> ${ev.type}<br>
+            <strong>Device:</strong> ${ev.device_uid}<br>
+            <strong>Alert Reason:</strong> ${ev.alert_reason}<br>
+            <strong>Captured:</strong> ${new Date(ev.captured_at).toLocaleString()}<br>
+            <strong>File:</strong> ${ev.path}
+        </div>
+    `;
+    
+    if (ev.type === 'AUDIO') {
+        content += `
+            <audio controls class="w-100">
+                <source src="/static/evidence/${ev.path}" type="audio/wav">
+                Your browser does not support audio playback.
+            </audio>
+        `;
+    } else if (ev.type === 'PHOTO') {
+        content += `<img src="/static/evidence/${ev.path}" class="img-fluid" alt="Evidence photo">`;
+    }
+    
+    document.getElementById('evidenceModalBody').innerHTML = content;
+    document.getElementById('downloadBtn').onclick = () => downloadEvidence(ev.path);
+    
+    modal.show();
+}
+
+function downloadEvidence(path) {
+    window.open(`/static/evidence/${path}`, '_blank');
+}
+
+function filterEvidence() {
+    const typeFilter = document.getElementById('typeFilter').value;
+    const dateFilter = document.getElementById('dateFilter').value;
+    const alertFilter = document.getElementById('alertFilter').value;
+    
+    filteredData = evidenceData.filter(ev => {
+        if (typeFilter !== 'all' && ev.type !== typeFilter) return false;
+        if (dateFilter && !ev.captured_at.startsWith(dateFilter)) return false;
+        if (alertFilter && ev.alert_id != alertFilter) return false;
+        return true;
+    });
+    
+    renderEvidence();
+}
+</script>
+{% endblock %}

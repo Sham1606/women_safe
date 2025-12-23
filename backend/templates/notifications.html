@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - Shield System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold">🔔 Notifications</h2>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="markAllRead()">
+                        Mark All Read
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="clearAll()">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <ul class="nav nav-tabs mb-3" id="notificationTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#all">All</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#alerts">Alerts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#devices">Devices</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#system">System</a>
+                </li>
+            </ul>
+
+            <!-- Notifications Container -->
+            <div class="tab-content" id="notificationContent">
+                <!-- All Notifications -->
+                <div class="tab-pane fade show active" id="all">
+                    <div id="allNotificationsList" class="notifications-list">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2">Loading notifications...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Notifications -->
+                <div class="tab-pane fade" id="alerts">
+                    <div id="alertNotificationsList" class="notifications-list"></div>
+                </div>
+
+                <!-- Device Notifications -->
+                <div class="tab-pane fade" id="devices">
+                    <div id="deviceNotificationsList" class="notifications-list"></div>
+                </div>
+
+                <!-- System Notifications -->
+                <div class="tab-pane fade" id="system">
+                    <div id="systemNotificationsList" class="notifications-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.notifications-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 1rem;
+    border-left: 4px solid #ddd;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.notification-item.unread {
+    background: rgba(13, 110, 253, 0.1);
+    border-left-color: #0d6efd;
+}
+
+.notification-item.alert {
+    border-left-color: #dc3545;
+}
+
+.notification-item.device {
+    border-left-color: #198754;
+}
+
+.notification-item.system {
+    border-left-color: #ffc107;
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.notification-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+</style>
+
+<script>
+const API_BASE = '';
+let notifications = [];
+
+// Load notifications on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadNotifications, 30000);
+});
+
+function loadNotifications() {
+    const token = localStorage.getItem('token');
+    
+    // Load alerts as notifications
+    fetch(`${API_BASE}/api/alerts`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(res => res.json())
+    .then(alerts => {
+        notifications = alerts.map(alert => ({
+            id: alert.id,
+            type: 'alert',
+            icon: '🚨',
+            title: `Alert: ${alert.reason}`,
+            message: `Device ${alert.device_uid} triggered an alert`,
+            timestamp: alert.timestamp,
+            read: false,
+            data: alert
+        }));
+        
+        // Add some demo device notifications
+        notifications.push({
+            id: 'dev_1',
+            type: 'device',
+            icon: '📱',
+            title: 'Device Connected',
+            message: 'SHIELD-001 is now online',
+            timestamp: new Date().toISOString(),
+            read: true,
+            data: {}
+        });
+        
+        notifications.push({
+            id: 'sys_1',
+            type: 'system',
+            icon: '⚙️',
+            title: 'System Update',
+            message: 'AI model updated to v2.1',
+            timestamp: new Date(Date.now() - 3600000).toISOString(),
+            read: true,
+            data: {}
+        });
+        
+        renderNotifications();
+    })
+    .catch(err => {
+        console.error('Error loading notifications:', err);
+        showError('Failed to load notifications');
+    });
+}
+
+function renderNotifications() {
+    // All notifications
+    const allList = document.getElementById('allNotificationsList');
+    allList.innerHTML = notifications.length > 0 
+        ? notifications.map(renderNotificationItem).join('')
+        : '<div class="text-center py-5"><p class="text-muted">No notifications</p></div>';
+    
+    // Filter by type
+    ['alert', 'device', 'system'].forEach(type => {
+        const list = document.getElementById(`${type}NotificationsList`);
+        const filtered = notifications.filter(n => n.type === type);
+        list.innerHTML = filtered.length > 0
+            ? filtered.map(renderNotificationItem).join('')
+            : `<div class="text-center py-5"><p class="text-muted">No ${type} notifications</p></div>`;
+    });
+}
+
+function renderNotificationItem(notif) {
+    const timeAgo = getTimeAgo(notif.timestamp);
+    const readClass = notif.read ? '' : 'unread';
+    
+    return `
+        <div class="notification-item ${readClass} ${notif.type}" onclick="viewNotification('${notif.id}')">
+            <div class="d-flex align-items-start">
+                <div class="notification-icon">${notif.icon}</div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between">
+                        <strong>${notif.title}</strong>
+                        ${!notif.read ? '<span class="badge bg-primary">New</span>' : ''}
+                    </div>
+                    <p class="mb-1 text-muted">${notif.message}</p>
+                    <small class="notification-time">${timeAgo}</small>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function viewNotification(id) {
+    const notif = notifications.find(n => n.id == id);
+    if (!notif) return;
+    
+    // Mark as read
+    notif.read = true;
+    renderNotifications();
+    
+    // Handle different notification types
+    if (notif.type === 'alert' && notif.data.id) {
+        window.location.href = '/alerts';
+    }
+}
+
+function markAllRead() {
+    notifications.forEach(n => n.read = true);
+    renderNotifications();
+    showSuccess('All notifications marked as read');
+}
+
+function clearAll() {
+    if (confirm('Clear all notifications?')) {
+        notifications = [];
+        renderNotifications();
+        showSuccess('All notifications cleared');
+    }
+}
+
+function getTimeAgo(timestamp) {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const seconds = Math.floor((now - then) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    return `${Math.floor(seconds / 86400)} days ago`;
+}
+
+function showSuccess(message) {
+    // Simple alert for now
+    alert(message);
+}
+
+function showError(message) {
+    alert('Error: ' + message);
+}
+</script>
+{% endblock %}

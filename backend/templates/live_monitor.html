@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Live Monitor - Shield System{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- System Status Panel -->
+        <div class="col-md-3">
+            <div class="card border-primary mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📊 System Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Active Devices:</span>
+                            <strong id="activeDevices">0</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Pending Alerts:</span>
+                            <strong id="pendingAlerts" class="text-danger">0</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Events/min:</span>
+                            <strong id="eventRate">0</strong>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>System Health:</span>
+                            <span id="systemHealth" class="badge bg-success">Good</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="text-center">
+                        <button class="btn btn-sm btn-outline-primary w-100" onclick="refreshData()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Events -->
+            <div class="card border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">Recent Events</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div id="recentEvents" class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                        <div class="list-group-item text-center text-muted">
+                            No events yet
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Monitoring Area -->
+        <div class="col-md-9">
+            <!-- Live Feed -->
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📹 Live Device Feed</h5>
+                    <div>
+                        <span class="badge bg-success" id="connectionStatus">
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                            Live
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="deviceFeed" class="row g-3">
+                        <!-- Device cards will be populated here -->
+                        <div class="col-12 text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="text-muted mt-2">Loading devices...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vital Signs Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📈 Real-Time Vitals</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="vitalsChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.device-live-card {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s;
+}
+
+.device-live-card.alert-active {
+    border-color: #dc3545;
+    box-shadow: 0 0 20px rgba(220, 53, 69, 0.5);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(220, 53, 69, 0.5); }
+    50% { box-shadow: 0 0 30px rgba(220, 53, 69, 0.8); }
+}
+
+.vital-indicator {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.vital-normal { background: #d4edda; color: #155724; }
+.vital-warning { background: #fff3cd; color: #856404; }
+.vital-danger { background: #f8d7da; color: #721c24; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const API_BASE = '';
+let updateInterval;
+let chart;
+let chartData = {
+    labels: [],
+    datasets: [{
+        label: 'Heart Rate',
+        data: [],
+        borderColor: 'rgb(255, 99, 132)',
+        tension: 0.1
+    }, {
+        label: 'Temperature',
+        data: [],
+        borderColor: 'rgb(54, 162, 235)',
+        tension: 0.1,
+        yAxisID: 'y1'
+    }]
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    initChart();
+    startMonitoring();
+});
+
+function initChart() {
+    const ctx = document.getElementById('vitalsChart').getContext('2d');
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: { display: true, text: 'Heart Rate (bpm)' }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: { display: true, text: 'Temperature (°C)' },
+                    grid: { drawOnChartArea: false }
+                }
+            }
+        }
+    });
+}
+
+function startMonitoring() {
+    loadDevices();
+    updateInterval = setInterval(loadDevices, 5000); // Update every 5 seconds
+}
+
+function stopMonitoring() {
+    if (updateInterval) {
+        clearInterval(updateInterval);
+    }
+}
+
+function loadDevices() {
+    const token = localStorage.getItem('token');
+    
+    fetch(`${API_BASE}/api/device/my-devices`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(devices => {
+        renderDevices(devices);
+        updateStats(devices);
+        updateChart(devices);
+    })
+    .catch(err => {
+        console.error('Error loading devices:', err);
+        document.getElementById('connectionStatus').innerHTML = '❌ Offline';
+        document.getElementById('connectionStatus').className = 'badge bg-danger';
+    });
+}
+
+function renderDevices(devices) {
+    const feed = document.getElementById('deviceFeed');
+    
+    if (devices.length === 0) {
+        feed.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No devices connected</p></div>';
+        return;
+    }
+    
+    feed.innerHTML = devices.map(device => {
+        const hasAlert = device.active_alert && device.active_alert.id;
+        const hr = device.latest_vitals?.hr || '--';
+        const temp = device.latest_vitals?.temp || '--';
+        const aiLabel = device.latest_vitals?.ai_label || 'unknown';
+        
+        const hrClass = hr > 100 ? 'vital-danger' : hr > 90 ? 'vital-warning' : 'vital-normal';
+        const tempClass = temp > 38 ? 'vital-danger' : temp > 37 ? 'vital-warning' : 'vital-normal';
+        
+        return `
+            <div class="col-md-6 col-lg-4">
+                <div class="device-live-card ${hasAlert ? 'alert-active' : ''}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">📱 ${device.uid}</h6>
+                        <span class="badge ${device.is_active ? 'bg-success' : 'bg-secondary'}">
+                            ${device.is_active ? 'Online' : 'Offline'}
+                        </span>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">Battery:</small>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar ${device.battery > 20 ? 'bg-success' : 'bg-danger'}" 
+                                 style="width: ${device.battery}%"></div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <div class="mb-1">
+                            <small>HR:</small> 
+                            <span class="vital-indicator ${hrClass}">${hr} bpm</span>
+                        </div>
+                        <div class="mb-1">
+                            <small>Temp:</small> 
+                            <span class="vital-indicator ${tempClass}">${temp}°C</span>
+                        </div>
+                        <div class="mb-1">
+                            <small>AI:</small> 
+                            <span class="badge ${aiLabel === 'normal' ? 'bg-success' : 'bg-warning'}">
+                                ${aiLabel}
+                            </span>
+                        </div>
+                    </div>
+                    ${hasAlert ? `
+                        <div class="mt-2">
+                            <span class="badge bg-danger w-100">🚨 ALERT ACTIVE</span>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateStats(devices) {
+    const activeCount = devices.filter(d => d.is_active).length;
+    const alertCount = devices.filter(d => d.active_alert?.id).length;
+    
+    document.getElementById('activeDevices').textContent = activeCount;
+    document.getElementById('pendingAlerts').textContent = alertCount;
+    
+    // Update system health
+    const health = alertCount === 0 ? 'Good' : alertCount < 3 ? 'Warning' : 'Critical';
+    const healthBadge = document.getElementById('systemHealth');
+    healthBadge.textContent = health;
+    healthBadge.className = `badge ${alertCount === 0 ? 'bg-success' : alertCount < 3 ? 'bg-warning' : 'bg-danger'}`;
+}
+
+function updateChart(devices) {
+    if (devices.length === 0) return;
+    
+    const now = new Date().toLocaleTimeString();
+    const avgHR = devices.reduce((sum, d) => sum + (d.latest_vitals?.hr || 0), 0) / devices.length;
+    const avgTemp = devices.reduce((sum, d) => sum + (d.latest_vitals?.temp || 0), 0) / devices.length;
+    
+    chartData.labels.push(now);
+    chartData.datasets[0].data.push(avgHR.toFixed(0));
+    chartData.datasets[1].data.push(avgTemp.toFixed(1));
+    
+    // Keep only last 20 data points
+    if (chartData.labels.length > 20) {
+        chartData.labels.shift();
+        chartData.datasets[0].data.shift();
+        chartData.datasets[1].data.shift();
+    }
+    
+    chart.update('none');
+}
+
+function refreshData() {
+    loadDevices();
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', stopMonitoring);
+</script>
+{% endblock %}
