@@ -1,0 +1,91 @@
+# Required Arduino Libraries for ESP32 Women Safety Device
+
+# Install via Arduino Library Manager (Sketch > Include Library > Manage Libraries)
+
+1. SparkFun MAX3010x Pulse and Proximity Sensor Library
+   - Version: 1.1.2 or later
+   - For: MAX30102 heart rate sensor
+   - Install: Search "SparkFun MAX3010x" in Library Manager
+
+2. Adafruit MLX90614 Library
+   - Version: 2.1.3 or later
+   - For: MLX90614 infrared temperature sensor
+   - Install: Search "Adafruit MLX90614" in Library Manager
+   - Dependencies: Adafruit BusIO (auto-installed)
+
+3. TinyGPSPlus
+   - Version: 1.0.3 or later
+   - For: GPS data parsing (NEO-6M module)
+   - Install: Search "TinyGPSPlus" in Library Manager
+
+4. ArduinoJson
+   - Version: 6.21.0 or later (use v6.x, NOT v5.x)
+   - For: JSON data handling for API communication
+   - Install: Search "ArduinoJson" in Library Manager
+
+5. Base64 by Densaugeo
+   - Version: 1.4.0 or later
+   - For: Encoding photos/audio for upload
+   - Install: Search "Base64 Densaugeo" in Library Manager
+
+6. ESP32 Camera (Built-in)
+   - Version: Included with ESP32 board support
+   - For: ESP32-CAM camera control
+   - No separate installation needed
+
+7. ESP32 I2S (Built-in)
+   - Version: Included with ESP32 board support
+   - For: I2S microphone audio capture
+   - No separate installation needed
+
+# ESP32 Board Support
+
+Board Manager URL:
+https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+
+Board Package:
+- ESP32 by Espressif Systems (v2.0.11 or later)
+
+# Alternative: Install via PlatformIO
+
+## platformio.ini
+
+[env:esp32cam]
+platform = espressif32
+board = esp32cam
+framework = arduino
+
+lib_deps =
+    sparkfun/SparkFun MAX3010x Pulse and Proximity Sensor Library @ ^1.1.2
+    adafruit/Adafruit MLX90614 Library @ ^2.1.3
+    mikalhart/TinyGPSPlus @ ^1.0.3
+    bblanchon/ArduinoJson @ ^6.21.0
+    densaugeo/base64 @ ^1.4.0
+
+monitor_speed = 115200
+upload_speed = 115200
+
+# Manual Installation (if Library Manager fails)
+
+1. Download libraries from GitHub:
+   - MAX3010x: https://github.com/sparkfun/SparkFun_MAX3010x_Sensor_Library
+   - MLX90614: https://github.com/adafruit/Adafruit-MLX90614-Library
+   - TinyGPSPlus: https://github.com/mikalhart/TinyGPSPlus
+   - ArduinoJson: https://github.com/bblanchon/ArduinoJson
+   - Base64: https://github.com/Densaugeo/base64_arduino
+
+2. Extract to Arduino libraries folder:
+   - Windows: Documents\Arduino\libraries\
+   - Mac: ~/Documents/Arduino/libraries/
+   - Linux: ~/Arduino/libraries/
+
+3. Restart Arduino IDE
+
+# Verification
+
+After installing libraries, verify in Arduino IDE:
+- Sketch > Include Library > (check if all libraries are listed)
+
+Compile test:
+- File > Examples > SparkFun MAX3010x > Example1_HeartRate
+- Verify it compiles without errors
