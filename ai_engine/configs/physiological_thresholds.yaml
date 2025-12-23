@@ -1,0 +1,39 @@
+# Physiological Thresholds Configuration
+
+heart_rate:
+  unit: "bpm"
+  normal:
+    min: 60
+    max: 100
+  stress:
+    threshold: 110
+    high_threshold: 130
+  bradycardia_threshold: 50
+  tachycardia_threshold: 150
+  
+temperature:
+  unit: "celsius"
+  normal:
+    min: 36.1
+    max: 37.2
+  stress:
+    threshold: 37.5
+  hypothermia:
+    threshold: 35.5
+  fever:
+    threshold: 38.0
+    
+hybrid_weights:
+  audio: 0.6
+  physiological: 0.4
+  
+detection_thresholds:
+  stress_score_threshold: 0.5
+  high_confidence_threshold: 0.7
+  alert_threshold: 0.8
+  
+time_series_analysis:
+  window_size: 10  # Number of readings to analyze
+  heart_rate_variability_threshold: 15  # bpm std
+  temperature_variability_threshold: 0.5  # celsius std
+  trend_detection_enabled: true

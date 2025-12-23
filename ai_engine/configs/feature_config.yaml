@@ -1,0 +1,47 @@
+# Feature Extraction Configuration
+
+audio:
+  sample_rate: 22050
+  duration: null  # Load full audio if null
+  
+mfcc:
+  n_mfcc: 40
+  n_fft: 2048
+  hop_length: 512
+  
+chroma:
+  n_chroma: 12
+  n_fft: 2048
+  hop_length: 512
+  
+mel_spectrogram:
+  n_mels: 128
+  n_fft: 2048
+  hop_length: 512
+  fmin: 0
+  fmax: 8000
+  
+spectral_contrast:
+  n_bands: 7
+  fmin: 200.0
+  
+statistics:
+  # For each feature, compute:
+  - mean
+  - std
+  - median
+  - min
+  - max
+  
+augmentation:
+  enabled: true
+  techniques:
+    pitch_shift:
+      enabled: true
+      n_steps: [-2, 2]
+    time_stretch:
+      enabled: true
+      rates: [0.8, 1.2]
+    add_noise:
+      enabled: true
+      noise_factor: 0.005

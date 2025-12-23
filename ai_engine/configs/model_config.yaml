@@ -1,0 +1,58 @@
+# Model Configuration for Ensemble Audio Stress Detection
+
+model:
+  name: "ensemble_audio_stress_detector"
+  version: "1.0.0"
+  type: "voting_classifier"
+  voting: "soft"
+  
+base_classifiers:
+  logistic_regression:
+    max_iter: 1000
+    random_state: 42
+    solver: "lbfgs"
+    
+  random_forest:
+    n_estimators: 100
+    max_depth: null
+    min_samples_split: 2
+    min_samples_leaf: 1
+    random_state: 42
+    
+  gradient_boosting:
+    n_estimators: 100
+    learning_rate: 0.1
+    max_depth: 3
+    random_state: 42
+    
+  svm:
+    kernel: "rbf"
+    probability: true
+    random_state: 42
+    C: 1.0
+    gamma: "scale"
+
+ensemble_weights:
+  logistic_regression: 1
+  random_forest: 2
+  gradient_boosting: 2
+  svm: 1
+
+training:
+  test_size: 0.2
+  random_state: 42
+  validation_split: 0.15
+  stratify: true
+  
+preprocessing:
+  sample_rate: 22050
+  remove_noise: true
+  normalize: true
+  trim_silence: true
+  silence_threshold_db: 20
+
+paths:
+  model_output: "ai_engine/models/audio_stress_model.pkl"
+  scaler_output: "ai_engine/models/scaler.pkl"
+  data_dir: "ai_engine/data"
+  logs_dir: "ai_engine/logs"
