@@ -1,66 +1,75 @@
-"""Physiological Sensor Analysis
+"""Physiological Stress Analyzer
 
-Analyzes physiological signals for stress detection:
-- Heart rate monitoring
-- Body temperature analysis
-- Threshold-based anomaly detection
+Analyzes heart rate and temperature data for stress detection.
+Uses threshold-based approach with abnormal pattern detection.
 """
 
 import numpy as np
-from typing import Dict, Tuple
 import logging
-from datetime import datetime
+from typing import Dict, Tuple
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class PhysiologicalThresholds:
+    """Thresholds for stress detection"""
+    # Heart rate thresholds (bpm)
+    heart_rate_normal_min: int = 60
+    heart_rate_normal_max: int = 100
+    heart_rate_stress_threshold: int = 110
+    heart_rate_high_stress_threshold: int = 130
+    
+    # Temperature thresholds (Celsius)
+    temperature_normal_min: float = 36.1
+    temperature_normal_max: float = 37.2
+    temperature_stress_threshold: float = 37.5
+    temperature_low_threshold: float = 35.5
+
+
 class PhysiologicalAnalyzer:
-    """Analyze physiological sensor data for stress indicators"""
+    """Analyzes physiological sensor data for stress detection"""
     
-    # Normal ranges
-    NORMAL_HEART_RATE_MIN = 60
-    NORMAL_HEART_RATE_MAX = 100
-    ELEVATED_HEART_RATE_THRESHOLD = 110  # Stress indicator
+    def __init__(self, thresholds: PhysiologicalThresholds = None):
+        self.thresholds = thresholds or PhysiologicalThresholds()
+        logger.info("PhysiologicalAnalyzer initialized with thresholds")
     
-    NORMAL_TEMP_MIN = 36.1  # Celsius
-    NORMAL_TEMP_MAX = 37.2
-    STRESS_TEMP_THRESHOLD = 37.5  # Elevated temperature
-    
-    def __init__(self):
-        logger.info("Initialized PhysiologicalAnalyzer")
-    
-    def analyze_heart_rate(self, heart_rate: int) -> Dict:
+    def analyze_heart_rate(self, heart_rate: float) -> Dict:
         """Analyze heart rate for stress indicators
         
         Args:
-            heart_rate: Heart rate in BPM
+            heart_rate: Heart rate in beats per minute (bpm)
             
         Returns:
-            Analysis results
+            Dictionary with analysis results
         """
-        if heart_rate < self.NORMAL_HEART_RATE_MIN:
-            status = "low"
-            stress_level = 0.0
-        elif heart_rate <= self.NORMAL_HEART_RATE_MAX:
-            status = "normal"
-            stress_level = 0.0
-        elif heart_rate <= self.ELEVATED_HEART_RATE_THRESHOLD:
-            status = "elevated"
-            # Linear scale between normal and elevated
-            stress_level = (heart_rate - self.NORMAL_HEART_RATE_MAX) / \
-                          (self.ELEVATED_HEART_RATE_THRESHOLD - self.NORMAL_HEART_RATE_MAX)
-        else:
-            status = "high"
-            stress_level = 1.0
-        
-        logger.debug(f"Heart rate: {heart_rate} BPM -> {status} (stress: {stress_level:.2f})")
-        
-        return {
-            'heart_rate': heart_rate,
-            'status': status,
-            'stress_level': round(stress_level, 3),
-            'is_abnormal': heart_rate > self.ELEVATED_HEART_RATE_THRESHOLD
+        result = {
+            'value': heart_rate,
+            'is_abnormal': False,
+            'stress_level': 'normal',
+            'score': 0.0
         }
+        
+        if heart_rate < self.thresholds.heart_rate_normal_min:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'low_heart_rate'
+            result['score'] = 0.3
+        elif heart_rate >= self.thresholds.heart_rate_high_stress_threshold:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'high_stress'
+            result['score'] = 1.0
+        elif heart_rate >= self.thresholds.heart_rate_stress_threshold:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'moderate_stress'
+            result['score'] = 0.7
+        elif heart_rate > self.thresholds.heart_rate_normal_max:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'mild_stress'
+            result['score'] = 0.5
+        
+        logger.debug(f"Heart rate analysis: {result}")
+        return result
     
     def analyze_temperature(self, temperature: float) -> Dict:
         """Analyze body temperature for stress indicators
@@ -69,71 +78,123 @@ class PhysiologicalAnalyzer:
             temperature: Body temperature in Celsius
             
         Returns:
-            Analysis results
+            Dictionary with analysis results
         """
-        if temperature < self.NORMAL_TEMP_MIN:
-            status = "low"
-            stress_level = 0.0
-        elif temperature <= self.NORMAL_TEMP_MAX:
-            status = "normal"
-            stress_level = 0.0
-        elif temperature <= self.STRESS_TEMP_THRESHOLD:
-            status = "elevated"
-            # Linear scale
-            stress_level = (temperature - self.NORMAL_TEMP_MAX) / \
-                          (self.STRESS_TEMP_THRESHOLD - self.NORMAL_TEMP_MAX)
-        else:
-            status = "high"
-            stress_level = 1.0
-        
-        logger.debug(f"Temperature: {temperature}°C -> {status} (stress: {stress_level:.2f})")
-        
-        return {
-            'temperature': temperature,
-            'status': status,
-            'stress_level': round(stress_level, 3),
-            'is_abnormal': temperature > self.STRESS_TEMP_THRESHOLD
+        result = {
+            'value': temperature,
+            'is_abnormal': False,
+            'stress_level': 'normal',
+            'score': 0.0
         }
+        
+        if temperature < self.thresholds.temperature_low_threshold:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'hypothermia_risk'
+            result['score'] = 0.6
+        elif temperature >= self.thresholds.temperature_stress_threshold:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'elevated_temperature'
+            result['score'] = 0.8
+        elif temperature > self.thresholds.temperature_normal_max:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'mild_elevation'
+            result['score'] = 0.4
+        elif temperature < self.thresholds.temperature_normal_min:
+            result['is_abnormal'] = True
+            result['stress_level'] = 'slightly_low'
+            result['score'] = 0.3
+        
+        logger.debug(f"Temperature analysis: {result}")
+        return result
     
-    def analyze_combined(self, heart_rate: int, temperature: float) -> Dict:
-        """Analyze both heart rate and temperature
+    def analyze_combined(self, heart_rate: float, temperature: float) -> Dict:
+        """Combined analysis of heart rate and temperature
         
         Args:
-            heart_rate: Heart rate in BPM
+            heart_rate: Heart rate in bpm
             temperature: Body temperature in Celsius
             
         Returns:
-            Combined analysis
+            Combined analysis with overall stress detection
         """
         hr_analysis = self.analyze_heart_rate(heart_rate)
         temp_analysis = self.analyze_temperature(temperature)
         
-        # Combined stress level (average)
-        combined_stress = (hr_analysis['stress_level'] + temp_analysis['stress_level']) / 2
+        # Calculate combined stress score (weighted average)
+        combined_score = (hr_analysis['score'] * 0.6) + (temp_analysis['score'] * 0.4)
         
-        # Determine if distress detected
-        distress_detected = hr_analysis['is_abnormal'] or temp_analysis['is_abnormal']
+        # Determine overall stress detection
+        stress_detected = combined_score >= 0.5
         
         result = {
-            'timestamp': datetime.now().isoformat(),
-            'heart_rate_analysis': hr_analysis,
-            'temperature_analysis': temp_analysis,
-            'combined_stress_level': round(combined_stress, 3),
-            'distress_detected': distress_detected,
-            'recommendation': self._get_recommendation(combined_stress, distress_detected)
+            'heart_rate': hr_analysis,
+            'temperature': temp_analysis,
+            'combined_score': combined_score,
+            'stress_detected': stress_detected,
+            'confidence': combined_score,
+            'alert_recommended': combined_score >= 0.7
         }
         
-        logger.info(f"Combined analysis: Stress={combined_stress:.2f}, Distress={distress_detected}")
-        
+        logger.info(f"Combined analysis: Score={combined_score:.2f}, Stress={stress_detected}")
         return result
     
-    def _get_recommendation(self, stress_level: float, distress: bool) -> str:
-        """Get recommendation based on stress level"""
-        if distress:
-            return "ALERT: Abnormal physiological signals detected. Immediate attention required."
-        elif stress_level > 0.7:
-            return "High stress level detected. Monitor closely."
-        elif stress_level > 0.4:
-            return "Moderate stress level. Continue monitoring."
-        else:
-            return "Normal physiological state."
+    def analyze_time_series(self, heart_rates: list, temperatures: list) -> Dict:
+        """Analyze time series data for stress patterns
+        
+        Args:
+            heart_rates: List of heart rate measurements
+            temperatures: List of temperature measurements
+            
+        Returns:
+            Time series analysis results
+        """
+        hr_array = np.array(heart_rates)
+        temp_array = np.array(temperatures)
+        
+        # Calculate trends
+        hr_mean = np.mean(hr_array)
+        hr_std = np.std(hr_array)
+        hr_trend = np.polyfit(range(len(hr_array)), hr_array, 1)[0]
+        
+        temp_mean = np.mean(temp_array)
+        temp_std = np.std(temp_array)
+        temp_trend = np.polyfit(range(len(temp_array)), temp_array, 1)[0]
+        
+        # Detect abnormal variability
+        hr_high_variability = hr_std > 15
+        temp_high_variability = temp_std > 0.5
+        
+        # Detect concerning trends (rapid increase)
+        hr_rapid_increase = hr_trend > 2  # More than 2 bpm increase per reading
+        temp_rapid_increase = temp_trend > 0.1  # More than 0.1°C increase per reading
+        
+        stress_indicators = [
+            hr_high_variability,
+            temp_high_variability,
+            hr_rapid_increase,
+            temp_rapid_increase,
+            hr_mean > self.thresholds.heart_rate_stress_threshold
+        ]
+        
+        stress_score = sum(stress_indicators) / len(stress_indicators)
+        
+        result = {
+            'heart_rate_stats': {
+                'mean': float(hr_mean),
+                'std': float(hr_std),
+                'trend': float(hr_trend),
+                'high_variability': hr_high_variability
+            },
+            'temperature_stats': {
+                'mean': float(temp_mean),
+                'std': float(temp_std),
+                'trend': float(temp_trend),
+                'high_variability': temp_high_variability
+            },
+            'stress_score': float(stress_score),
+            'stress_detected': stress_score >= 0.4,
+            'n_samples': len(heart_rates)
+        }
+        
+        logger.info(f"Time series analysis: Score={stress_score:.2f} over {len(heart_rates)} samples")
+        return result
