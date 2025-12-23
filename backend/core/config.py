@@ -10,9 +10,10 @@ class Config:
     # Flask
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # Database
+    # Database - SQLite
+    BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'postgresql://localhost/women_safety_db'
+        'sqlite:///' + os.path.join(BASE_DIR, 'women_safety.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
     
@@ -85,7 +86,9 @@ class ProductionConfig(Config):
     # Override with environment variables in production
     SECRET_KEY = os.environ.get('SECRET_KEY')
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    
+    # Can still use SQLite in production or switch to PostgreSQL
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or Config.SQLALCHEMY_DATABASE_URI
     
     # Ensure critical config is set
     if not SECRET_KEY:
