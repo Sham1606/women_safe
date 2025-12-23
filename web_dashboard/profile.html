@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Women Safety System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <i class="bi bi-shield-fill-check"></i>
+                Women Safety System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="devices.html">
+                            <i class="bi bi-phone"></i> Devices
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="alerts.html">
+                            <i class="bi bi-bell"></i> Alerts
+                            <span class="badge bg-danger" id="alertCount">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="guardians.html">
+                            <i class="bi bi-people"></i> Guardians
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> <span id="userName">User</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item active" href="profile.html"><i class="bi bi-person"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="settings.html"><i class="bi bi-gear"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-4">
+        <div class="row">
+            <!-- Profile Sidebar -->
+            <div class="col-lg-4 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-person-circle text-primary" style="font-size: 6rem;"></i>
+                        </div>
+                        <h4 id="profileName">Loading...</h4>
+                        <p class="text-muted" id="profileEmail">-</p>
+                        <span class="badge bg-primary" id="profileRole">User</span>
+                        <hr>
+                        <div class="text-start">
+                            <p class="mb-2"><i class="bi bi-telephone"></i> <span id="profilePhone">-</span></p>
+                            <p class="mb-2"><i class="bi bi-calendar"></i> Joined <span id="profileJoined">-</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="col-lg-8">
+                <!-- Update Profile -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-person"></i> Update Profile</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="updateProfileForm">
+                            <div class="mb-3">
+                                <label for="updateName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="updateName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="updateEmail" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="updateEmail" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="updatePhone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="updatePhone">
+                            </div>
+                            <div id="profileAlert" class="alert d-none" role="alert"></div>
+                            <button type="submit" class="btn btn-primary">
+                                <span id="updateProfileBtnText"><i class="bi bi-save"></i> Save Changes</span>
+                                <span id="updateProfileSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0"><i class="bi bi-lock"></i> Change Password</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="changePasswordForm">
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="currentPassword" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword" required>
+                                <small class="text-muted">Minimum 8 characters</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirmNewPassword" required>
+                            </div>
+                            <div id="passwordAlert" class="alert d-none" role="alert"></div>
+                            <button type="submit" class="btn btn-primary">
+                                <span id="changePasswordBtnText"><i class="bi bi-key"></i> Change Password</span>
+                                <span id="changePasswordSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/profile.js"></script>
+</body>
+</html>
