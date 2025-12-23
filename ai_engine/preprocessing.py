@@ -1,104 +1,165 @@
-"""Audio Preprocessing Module
+"""Audio Preprocessing Utilities
 
-Preprocesses audio data for stress detection:
+Preprocessing functions for audio data:
 - Noise removal
 - Normalization
 - Silence trimming
-- Resampling
+- Audio augmentation
 """
 
-import librosa
 import numpy as np
-import noisereduce as nr
-from typing import Tuple
+import librosa
 import logging
+from typing import Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
 
-class AudioPreprocessor:
-    """Preprocess audio for stress detection"""
+def remove_noise(audio: np.ndarray, sr: int, noise_duration: float = 0.5) -> np.ndarray:
+    """Remove background noise using spectral gating
     
-    def __init__(self, target_sr: int = 22050, trim_silence: bool = True):
-        """
-        Args:
-            target_sr: Target sample rate
-            trim_silence: Whether to trim silence from audio
-        """
-        self.target_sr = target_sr
-        self.trim_silence = trim_silence
-    
-    def load_audio(self, audio_path: str) -> Tuple[np.ndarray, int]:
-        """Load audio file"""
-        try:
-            audio, sr = librosa.load(audio_path, sr=self.target_sr)
-            logger.debug(f"Loaded audio: {len(audio)} samples at {sr}Hz")
-            return audio, sr
-        except Exception as e:
-            logger.error(f"Failed to load audio from {audio_path}: {e}")
-            raise
-    
-    def remove_noise(self, audio: np.ndarray, sr: int) -> np.ndarray:
-        """Remove background noise using noise reduction"""
-        try:
-            # Use noisereduce library
-            reduced_noise = nr.reduce_noise(y=audio, sr=sr)
-            logger.debug("Noise reduction applied")
-            return reduced_noise
-        except Exception as e:
-            logger.warning(f"Noise reduction failed: {e}. Using original audio.")
-            return audio
-    
-    def normalize_audio(self, audio: np.ndarray) -> np.ndarray:
-        """Normalize audio amplitude to [-1, 1]"""
-        max_val = np.abs(audio).max()
-        if max_val > 0:
-            audio = audio / max_val
-        logger.debug("Audio normalized")
+    Args:
+        audio: Audio time series
+        sr: Sample rate
+        noise_duration: Duration of noise profile in seconds
+        
+    Returns:
+        Denoised audio
+    """
+    try:
+        # Use first part as noise profile
+        noise_sample_length = int(noise_duration * sr)
+        noise_profile = audio[:noise_sample_length]
+        
+        # Calculate noise threshold
+        noise_rms = np.sqrt(np.mean(noise_profile**2))
+        threshold = noise_rms * 1.5
+        
+        # Simple spectral subtraction
+        audio_denoised = np.where(np.abs(audio) > threshold, audio, 0)
+        
+        logger.debug(f"Noise removed with threshold {threshold:.4f}")
+        return audio_denoised
+    except Exception as e:
+        logger.warning(f"Noise removal failed: {e}. Returning original audio.")
         return audio
+
+
+def normalize_audio(audio: np.ndarray) -> np.ndarray:
+    """Normalize audio to [-1, 1] range
     
-    def trim_silence_from_audio(self, audio: np.ndarray, top_db: int = 20) -> np.ndarray:
-        """Trim leading and trailing silence"""
-        try:
-            trimmed, _ = librosa.effects.trim(audio, top_db=top_db)
-            logger.debug(f"Trimmed silence: {len(audio)} -> {len(trimmed)} samples")
-            return trimmed
-        except Exception as e:
-            logger.warning(f"Silence trimming failed: {e}. Using original audio.")
-            return audio
+    Args:
+        audio: Audio time series
+        
+    Returns:
+        Normalized audio
+    """
+    max_val = np.abs(audio).max()
+    if max_val > 0:
+        audio_normalized = audio / max_val
+    else:
+        audio_normalized = audio
     
-    def preprocess(self, audio: np.ndarray, sr: int) -> np.ndarray:
-        """Complete preprocessing pipeline
-        
-        Args:
-            audio: Raw audio data
-            sr: Sample rate
-            
-        Returns:
-            Preprocessed audio
-        """
-        # Remove noise
-        audio = self.remove_noise(audio, sr)
-        
-        # Normalize
-        audio = self.normalize_audio(audio)
-        
-        # Trim silence
-        if self.trim_silence:
-            audio = self.trim_silence_from_audio(audio)
-        
-        logger.info("Preprocessing completed")
-        return audio
+    logger.debug("Audio normalized")
+    return audio_normalized
+
+
+def trim_silence(audio: np.ndarray, sr: int, top_db: int = 20) -> np.ndarray:
+    """Trim silence from beginning and end of audio
     
-    def preprocess_from_file(self, audio_path: str) -> Tuple[np.ndarray, int]:
-        """Load and preprocess audio file
+    Args:
+        audio: Audio time series
+        sr: Sample rate
+        top_db: Threshold in dB below reference to consider silence
         
-        Args:
-            audio_path: Path to audio file
-            
-        Returns:
-            Tuple of (preprocessed_audio, sample_rate)
-        """
-        audio, sr = self.load_audio(audio_path)
-        audio = self.preprocess(audio, sr)
-        return audio, sr
+    Returns:
+        Trimmed audio
+    """
+    audio_trimmed, _ = librosa.effects.trim(audio, top_db=top_db)
+    
+    original_duration = len(audio) / sr
+    trimmed_duration = len(audio_trimmed) / sr
+    
+    logger.debug(f"Silence trimmed: {original_duration:.2f}s -> {trimmed_duration:.2f}s")
+    return audio_trimmed
+
+
+def augment_audio_pitch_shift(audio: np.ndarray, sr: int, n_steps: int = 2) -> np.ndarray:
+    """Augment audio by shifting pitch
+    
+    Args:
+        audio: Audio time series
+        sr: Sample rate
+        n_steps: Number of semitones to shift
+        
+    Returns:
+        Pitch-shifted audio
+    """
+    audio_shifted = librosa.effects.pitch_shift(audio, sr=sr, n_steps=n_steps)
+    logger.debug(f"Pitch shifted by {n_steps} semitones")
+    return audio_shifted
+
+
+def augment_audio_time_stretch(audio: np.ndarray, rate: float = 1.2) -> np.ndarray:
+    """Augment audio by stretching time
+    
+    Args:
+        audio: Audio time series
+        rate: Stretch factor (>1 speeds up, <1 slows down)
+        
+    Returns:
+        Time-stretched audio
+    """
+    audio_stretched = librosa.effects.time_stretch(audio, rate=rate)
+    logger.debug(f"Time stretched by factor {rate}")
+    return audio_stretched
+
+
+def augment_audio_add_noise(audio: np.ndarray, noise_factor: float = 0.005) -> np.ndarray:
+    """Augment audio by adding Gaussian noise
+    
+    Args:
+        audio: Audio time series
+        noise_factor: Standard deviation of noise
+        
+    Returns:
+        Audio with added noise
+    """
+    noise = np.random.normal(0, noise_factor, audio.shape)
+    audio_noisy = audio + noise
+    logger.debug(f"Added Gaussian noise with factor {noise_factor}")
+    return audio_noisy
+
+
+def preprocess_audio(
+    audio: np.ndarray,
+    sr: int,
+    remove_noise_flag: bool = True,
+    normalize_flag: bool = True,
+    trim_silence_flag: bool = True
+) -> np.ndarray:
+    """Complete preprocessing pipeline
+    
+    Args:
+        audio: Audio time series
+        sr: Sample rate
+        remove_noise_flag: Whether to remove noise
+        normalize_flag: Whether to normalize
+        trim_silence_flag: Whether to trim silence
+        
+    Returns:
+        Preprocessed audio
+    """
+    processed_audio = audio.copy()
+    
+    if trim_silence_flag:
+        processed_audio = trim_silence(processed_audio, sr)
+    
+    if remove_noise_flag:
+        processed_audio = remove_noise(processed_audio, sr)
+    
+    if normalize_flag:
+        processed_audio = normalize_audio(processed_audio)
+    
+    logger.info("Audio preprocessing completed")
+    return processed_audio
