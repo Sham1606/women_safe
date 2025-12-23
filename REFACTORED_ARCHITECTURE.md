@@ -1,874 +1,615 @@
-# 🛡️ **AI-Powered Proactive Women's Safety Device**
-## Complete Refactored Architecture
+# 🛡️ AI-Powered Proactive Women's Safety Device - Refactored Architecture
+
+## 📋 Project Overview
+
+**Title:** An AI-Powered Proactive Women's Safety Device  
+**Institution:** Sri Manakula Vinayagar Engineering College, Puducherry  
+**Department:** Computer Science and Engineering  
+**Academic Year:** 2025-2026
+
+**Team Members:**
+- GOPIKAA. T (22UCS045)
+- DASARI DEEPTHIKA DEVI (22CSL002)
+- KAYALVIZHI. A (22UCS076)
+
+**Project Guide:** Mrs. S. DEEBA
 
 ---
 
-## 📋 **Project Overview**
+## 🎯 Problem Statement
 
-### **Title:** An AI-Powered Proactive Women's Safety Device
+Women's safety remains a critical global concern. Traditional safety solutions have significant limitations:
 
-### **Core Innovation:**
-A standalone IoT-enabled wearable device that uses **dual-mode stress detection** (physiological sensors + AI voice analysis) to automatically detect distress and trigger multi-layered emergency protocols without requiring manual activation.
+### ❌ **Existing System Issues:**
+1. **Manual Activation Required** - Victim must press button/open app
+2. **Smartphone Dependency** - Unreliable if phone is unavailable/dead
+3. **Connectivity Issues** - Requires internet/Bluetooth
+4. **No Contextual Awareness** - Cannot detect distress automatically
+5. **Limited Evidence Collection** - No automatic capture of surroundings
+6. **Delayed Response** - Time lost in manual activation
 
-### **Key Differentiators:**
-- ✅ **Proactive Detection:** Automatic stress detection using AI
-- ✅ **Standalone Operation:** No smartphone dependency
-- ✅ **Multi-Modal Evidence:** Audio + Image + GPS + Vitals
-- ✅ **Multi-Recipient Alerts:** Family + Police + Emergency Services (simultaneous)
-- ✅ **Real-time Monitoring:** Live tracking and evidence streaming
+### ✅ **Proposed Solution:**
 
----
-
-## 🏗️ **System Architecture**
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         WOMEN SAFETY ECOSYSTEM                          │
-└─────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
-│   IoT DEVICE     │       │   BACKEND API    │       │  WEB DASHBOARD   │
-│   (ESP32-CAM)    │◄─────►│   (Flask/JWT)    │◄─────►│  (React/Vue.js)  │
-│                  │  GSM  │                  │ HTTPS │                  │
-│ - Heart Rate     │  WiFi │ - Alert Manager  │       │ - Guardian View  │
-│ - Temperature    │       │ - AI Inference   │       │ - Police Panel   │
-│ - Microphone     │       │ - Evidence Store │       │ - Live Monitor   │
-│ - GPS Module     │       │ - Multi-Alert    │       │ - Evidence View  │
-│ - Camera         │       │ - Notification   │       │ - Analytics      │
-│ - Buzzer         │       │ - Database       │       │                  │
-└──────────────────┘       └──────────────────┘       └──────────────────┘
-         │                          │                          │
-         │                          ▼                          │
-         │                  ┌───────────────┐                 │
-         │                  │ ALERT ENGINE  │                 │
-         │                  │               │                 │
-         │                  │ ├─► Family    │                 │
-         └─────────────────►│ ├─► Police    │◄────────────────┘
-                            │ └─► NGO/911   │
-                            └───────────────┘
-```
+A **standalone, AI-powered IoT device** that:
+- **Detects distress automatically** using dual-mode stress detection
+- **Operates independently** of smartphones
+- **Triggers multi-layered emergency protocol** automatically
+- **Captures evidence** (GPS + Audio + Images)
+- **Sends simultaneous alerts** to police, family, and authorities
 
 ---
 
-## 🔄 **Complete System Workflow**
+## 🏗️ System Architecture
 
-### **Stage 1: Device Power On**
-```
-1. ESP32 initializes sensors
-2. Connect to WiFi/GSM network
-3. Authenticate with backend server
-4. Start continuous monitoring loop
-```
+### **3-Tier Architecture:**
 
-### **Stage 2: Dual-Mode Stress Detection**
-
-#### **Mode A: Physiological Monitoring**
 ```
-Heart Rate Sensor ──► [Threshold: > 100 BPM] ──► Stress Score +30%
-Temperature Sensor ──► [Threshold: > 38.5°C] ──► Stress Score +10%
-GSR (Skin Response) ──► [Abnormal patterns] ──► Stress Score +20%
-```
-
-#### **Mode B: AI Voice Analysis**
-```
-Microphone ──► Audio Buffer (3s) ──► 
-    ├─► Extract Features (MFCC, Chroma, Mel, Spectral)
-    ├─► Send to Backend AI Model
-    └─► Get Prediction: {label: 'stressed', confidence: 0.85}
-          └─► If 'stressed' && confidence > 0.7 ──► Stress Score +40%
-```
-
-### **Stage 3: Alert Threshold Check**
-```
-Total Stress Score = (Physiological × 0.4) + (AI Voice × 0.6)
-
-IF Stress Score > 0.5 OR Manual SOS Button Pressed:
-    ──► TRIGGER EMERGENCY PROTOCOL
-```
-
-### **Stage 4: Emergency Protocol (Automatic)**
-```
-┌─────────────────── EMERGENCY ACTIVATED ─────────────────────┐
+┌─────────────────────────────────────────────────────────────┐
+│                    TIER 1: IoT DEVICE                        │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │ ESP32-CAM    │  │ Microphone   │  │ Stress       │     │
+│  │ (Image)      │  │ (Voice)      │  │ Sensor (HR)  │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │ GPS Module   │  │ Buzzer       │  │ Manual       │     │
+│  │ (Location)   │  │ (Alarm)      │  │ Button       │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
 │                                                              │
-│ Step 1: EVIDENCE CAPTURE (Simultaneous)                     │
-│    ├─► Camera: Capture 3 images (front-facing)              │
-│    ├─► Microphone: Record 10s audio                         │
-│    ├─► GPS: Fetch current coordinates                       │
-│    └─► Vitals: Log HR, Temp, Stress Score                   │
+│             API: POST /api/device/event                      │
+│                     (FormData)                               │
+└─────────────────────┬────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│              TIER 2: BACKEND SERVER (Flask)                  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │          AI INFERENCE ENGINE                         │  │
+│  │  • Voice Stress Detection (ML Model)                 │  │
+│  │  • Physiological Analysis (Heart Rate)               │  │
+│  │  • Distress Score Calculation                        │  │
+│  │  • Alert Decision Engine                             │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │          DATABASE (SQLite/PostgreSQL)                │  │
+│  │  • Users, Devices, SensorEvents                      │  │
+│  │  • Alerts, Evidence                                  │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │       NOTIFICATION SERVICE (Twilio API)              │  │
+│  │  • SMS to Family/Police                              │  │
+│  │  • Email Alerts                                      │  │
+│  │  • Push Notifications                                │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                                                              │
-│ Step 2: LOCAL ACTIONS                                       │
-│    ├─► Activate HIGH-DECIBEL BUZZER (120dB)                 │
-│    └─► Flash LED lights (visual alert)                      │
+│        REST API Endpoints (JWT Authentication)               │
+└─────────────────────┬────────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│            TIER 3: WEB APPLICATION (Frontend)                │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │         GUARDIAN/FAMILY PORTAL                       │  │
+│  │  • Device Status Dashboard                           │  │
+│  │  • Real-time GPS Tracking Map                        │  │
+│  │  • Alert Notifications                               │  │
+│  │  • Evidence Viewer (Audio/Images)                    │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │         POLICE/ADMIN PANEL                           │  │
+│  │  • System-wide Alert Feed                            │  │
+│  │  • Evidence Database                                 │  │
+│  │  • Case Management                                   │  │
+│  │  • Analytics & Heatmaps                              │  │
+│  └──────────────────────────────────────────────────────┘  │
 │                                                              │
-│ Step 3: DATA TRANSMISSION (via GSM/WiFi)                    │
-│    ├─► POST /api/device/event                               │
-│    │    - device_uid                                         │
-│    │    - vitals (hr, temp, spo2)                           │
-│    │    - gps (lat, lng)                                     │
-│    │    - audio file (multipart)                            │
-│    │    - manual_sos flag                                    │
-│    │                                                         │
-│    └─► Backend processes & creates Alert                    │
-│         └─► Stores evidence in secure storage               │
-│         └─► Creates Alert with status: NEW                  │
-│                                                              │
-│ Step 4: MULTI-RECIPIENT ALERT DISPATCH                      │
-│    ├─► SMS to Family/Guardians (via Twilio)                 │
-│    │    "🚨 EMERGENCY: [Name] needs help!                   │
-│    │     Location: [GPS Link]                               │
-│    │     View Evidence: [Web Link]"                         │
-│    │                                                         │
-│    ├─► Alert to Police/Emergency Services                   │
-│    │    - Automated call to nearest police station          │
-│    │    - Push notification to police dashboard             │
-│    │    - Email with evidence attachments                   │
-│    │                                                         │
-│    └─► (Optional) Community Safety Network                  │
-│         - NGO helpline notification                          │
-│         - Nearby registered volunteers                       │
-│                                                              │
-│ Step 5: CONTINUOUS TRACKING                                 │
-│    └─► Send GPS updates every 30 seconds until resolved     │
-│                                                              │
+│     Tech Stack: HTML5, CSS3, Bootstrap 5, JavaScript,       │
+│     Leaflet.js (Maps), Chart.js (Analytics)                 │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### **Stage 5: Guardian/Police Response**
-```
-Family/Guardian:
-    ├─► Receives SMS + App notification
-    ├─► Opens Web Dashboard
-    ├─► Views real-time location on map
-    ├─► Listens to audio evidence
-    ├─► Views captured images
-    └─► Can call emergency services directly
+---
 
-Police/Admin:
-    ├─► Alert appears in real-time feed
-    ├─► Views all evidence (audio, images, vitals)
-    ├─► Updates alert status: NEW → IN_PROGRESS → RESOLVED
-    ├─► Dispatches nearest patrol unit
-    └─► Downloads evidence for legal documentation
+## 🔄 Workflow Pipeline
+
+### **Device Workflow (Based on Flowchart)**
+
+```
+START → Device Power On
+  ↓
+Initialize Sensors (HR, Temp, Microphone, Camera, GPS)
+  ↓
+Start Dual-Mode Stress Detection Engine
+  ↓
+┌─────────────────────────────────────┐
+│  Stress/Distress Detected?          │
+└─────┬─────YES─────┬─────NO──────────┘
+      │             │
+      ↓             ↓
+  AUTOMATIC     Wait for Manual Trigger
+    MODE            MODE
+      │             │
+      ↓             ↓
+  AI Voice     Manual Button Pressed?
+  Analysis         │
+      │         ┌───┴───┐
+  Threat       NO     YES
+  Confirmed?    │      │
+      │         ↓      ↓
+    YES    Continue  Activate
+      │    Normal    Camera
+      ↓    Monitor    ↓
+  Trigger           Fetch GPS
+  Alert System       ↓
+      │         Send Alert
+      │              ↓
+      └──────┬───────┘
+             │
+             ▼
+  ┌───────────────────────┐
+  │  EMERGENCY PROTOCOL   │
+  └───────────────────────┘
+             │
+      ┌──────┴──────┐
+      ↓             ↓
+  Activate      Fetch GPS
+  Camera      Coordinates
+      ↓             ↓
+  Capture   Transmit Distress
+  Images      Signal + Location
+      ↓             ↓
+  Send to      Activate
+  Server     High-Intensity
+      ↓         Buzzer
+      │             ↓
+      │    Notify Emergency
+      │   Contacts & Police
+      │             ↓
+      └──────┬──────┘
+             │
+             ▼
+  Store Event Logs Securely
+             │
+             ↓
+           END
 ```
 
 ---
 
-## 🔧 **Hardware Specifications (ESP32 Device)**
+## 🤖 AI Model Pipeline
 
-### **Core Components:**
-
-| Component | Model | Function | Connection |
-|-----------|-------|----------|------------|
-| **Microcontroller** | ESP32-CAM | Main processor + camera | - |
-| **Heart Rate Sensor** | MAX30102 | Pulse oximeter (HR + SpO2) | I2C |
-| **Temperature Sensor** | DHT22 / DS18B20 | Body temperature | Digital Pin |
-| **GSR Sensor** | Grove GSR | Galvanic skin response | Analog Pin |
-| **Microphone** | MAX9814 / INMP441 | Audio capture (I2S) | I2S / Analog |
-| **GPS Module** | NEO-6M / NEO-7M | Location tracking | UART |
-| **Buzzer** | Active Buzzer 5V | Emergency alarm (120dB) | Digital Pin |
-| **GSM Module** | SIM800L / SIM7600 | Cellular communication | UART |
-| **Camera** | ESP32-CAM OV2640 | Image capture | Built-in |
-| **Battery** | 3.7V Li-Ion 3000mAh | Power supply | Battery connector |
-| **Panic Button** | Push button | Manual SOS trigger | Digital Pin (Pull-up) |
-
-### **Pin Configuration:**
-```c
-// ESP32-CAM Pin Mapping
-#define HR_SENSOR_SDA 21
-#define HR_SENSOR_SCL 22
-#define TEMP_SENSOR_PIN 4
-#define GSR_SENSOR_PIN 36  // ADC1_0
-#define MIC_PIN 39         // ADC1_3
-#define GPS_TX 16
-#define GPS_RX 17
-#define GSM_TX 14
-#define GSM_RX 15
-#define BUZZER_PIN 13
-#define SOS_BUTTON_PIN 12
-#define LED_INDICATOR 33
-```
-
-### **Power Management:**
-- **Normal Mode:** 200-300mA (continuous monitoring)
-- **Alert Mode:** 500-800mA (camera + GSM + buzzer)
-- **Sleep Mode:** 10-20mA (deep sleep with wake-up triggers)
-- **Battery Life:** ~10-12 hours continuous use
-
----
-
-## 🤖 **AI Model Pipeline**
-
-### **Model Architecture:**
+### **Ensemble Audio Stress Detection Algorithm**
 
 ```python
-# Ensemble Audio Stress Detection Model
+# Based on algo.txt requirements
 
-Input: Raw Audio (WAV/MP3) → 3-second chunks
+# Step 1: Data Collection
+- Labeled audio dataset (stressed / non-stressed voices)
+- Real-time audio capture from microphone
 
-└─► Preprocessing:
-     ├─► Noise Removal (noise reduction filter)
-     ├─► Normalization (amplitude scaling)
-     └─► Resampling to 16kHz
+# Step 2: Audio Preprocessing
+- Noise removal (spectral subtraction)
+- Normalization (amplitude scaling)
+- Segmentation (fixed windows)
 
-└─► Feature Extraction:
-     ├─► MFCC (Mel-Frequency Cepstral Coefficients) - 13 coefficients
-     ├─► Chroma Features - 12 pitch classes
-     ├─► Mel Spectrogram - 128 mel bands
-     └─► Spectral Contrast - 7 bands
+# Step 3: Feature Extraction
+MFCC (Mel-Frequency Cepstral Coefficients)  # Voice characteristics
+Chroma Features                              # Pitch patterns
+Mel Spectrogram                              # Frequency distribution
+Spectral Contrast                            # Texture patterns
+Zero Crossing Rate                           # Signal smoothness
 
-└─► Ensemble Classifier:
-     ├─► Logistic Regression (weight: 0.2)
-     ├─► Random Forest (weight: 0.3)
-     ├─► Gradient Boosting (weight: 0.3)
-     └─► SVM (RBF kernel) (weight: 0.2)
+# Step 4: Model Training
+Base Classifiers:
+  1. Logistic Regression
+  2. Random Forest
+  3. Gradient Boosting
+  4. Support Vector Machine (SVM)
 
-└─► Soft Voting:
-     └─► Aggregate probabilities → Final Prediction
+# Step 5: Ensemble Method
+Soft Voting Ensemble:
+  - Aggregate probability scores from all models
+  - Weight by model confidence
+  - Final prediction = weighted average
 
-Output: {label: 'stressed' | 'normal', confidence: 0.0-1.0}
-```
+# Step 6: Evaluation Metrics
+- Accuracy, Precision, Recall, F1-Score
+- Confusion Matrix
+- ROC-AUC Curve
 
-### **Training Dataset:**
-- **Source:** RAVDESS, TESS, SAVEE, EmoDB (emotional speech datasets)
-- **Classes:** 2 (stressed, normal)
-- **Total Samples:** ~5000 audio clips
-- **Train/Test Split:** 80/20
-- **Data Augmentation:** Time stretching, pitch shifting, background noise
+# Step 7: Real-time Inference
+Input: Audio buffer (WAV format)
+Output: {'label': 'stressed', 'confidence': 0.87}
 
-### **Performance Metrics:**
-- **Accuracy:** 87-92%
-- **Precision:** 89%
-- **Recall:** 85%
-- **F1-Score:** 87%
-- **Inference Time:** < 2 seconds (on backend)
+# Step 8: Distress Score Calculation
+Distress Score = (
+    AI_Confidence (if stressed) × 0.6 +
+    Heart_Rate_Abnormal × 0.3 +
+    Temperature_Abnormal × 0.1
+)
 
-### **Model Deployment:**
-```
-Training: Python (TensorFlow/Scikit-learn)
-Export: Pickle file (ensemble_stress_model.pkl)
-Deployment: Flask API endpoint
-Inference: Real-time via /api/ai/predict-stress
+if Distress_Score > 0.5 OR Manual_SOS:
+    TRIGGER_ALERT()
 ```
 
 ---
 
-## 🗂️ **Backend API Architecture**
+## 📡 IoT Device API Specification
 
-### **Technology Stack:**
-- **Framework:** Flask 3.0
-- **Database:** SQLite (dev) / PostgreSQL (prod)
-- **Authentication:** JWT (Flask-JWT-Extended)
-- **File Storage:** Local filesystem / AWS S3
-- **Messaging:** Twilio API (SMS/Calls)
-- **Email:** SendGrid / SMTP
-- **Real-time:** Flask-SocketIO (WebSockets)
+### **Device-to-Server Communication**
 
-### **API Endpoints:**
+#### **Endpoint:** `POST /api/device/event`
 
-#### **1. Device Communication**
-```http
-POST /api/device/register
-Content-Type: application/json
-Authorization: Bearer <JWT>
+**Purpose:** IoT device sends sensor data, audio, and triggers alerts
 
-Request:
+**Content-Type:** `multipart/form-data`
+
+**Request Parameters:**
+
+```json
 {
-  "device_uid": "SHIELD-ESP32-001",
-  "owner_email": "user@example.com"
-}
-
-Response:
-{
-  "message": "Device registered successfully",
-  "device_id": 42
+  "device_uid": "SHIELD-001",           // Required: Device unique ID
+  "heart_rate": 75.0,                   // Optional: BPM
+  "temperature": 36.5,                  // Optional: Celsius
+  "spo2": 98.0,                         // Optional: Oxygen saturation
+  "lat": 11.9416,                       // Optional: Latitude
+  "lng": 79.8083,                       // Optional: Longitude
+  "battery_level": 85,                  // Optional: %
+  "manual_sos": 0,                      // 0 or 1 (manual trigger)
+  "audio": <file>,                      // Optional: WAV audio file
+  "image": <file>                       // Optional: JPEG image
 }
 ```
 
-```http
-POST /api/device/event
-Content-Type: multipart/form-data
+**Response (Success):**
 
-Request:
-- device_uid: "SHIELD-ESP32-001"
-- heart_rate: 115
-- temperature: 37.8
-- spo2: 97
-- lat: 11.9416
-- lng: 79.8083
-- manual_sos: 0
-- audio: <audio_file.wav>
-- image: <image.jpg>
-
-Response:
+```json
 {
   "status": "success",
-  "distress_score": 0.72,
+  "distress_score": 0.75,
   "alert_triggered": true,
-  "alert_id": 123
+  "alert_id": 42,
+  "message": "Emergency protocol activated"
 }
 ```
 
-#### **2. Alert Management**
-```http
-GET /api/alerts
-Authorization: Bearer <JWT>
+**Response (Normal):**
 
-Response:
-[
-  {
-    "id": 123,
-    "device_uid": "SHIELD-ESP32-001",
-    "reason": "AUTO_STRESS",
-    "status": "NEW",
-    "severity": "HIGH",
-    "timestamp": "2025-12-23T23:15:00Z",
-    "gps_lat": 11.9416,
-    "gps_lng": 79.8083,
-    "vitals": {"hr": 115, "temp": 37.8}
-  }
-]
-```
-
-```http
-GET /api/alerts/{alert_id}
-Authorization: Bearer <JWT>
-
-Response:
+```json
 {
-  "id": 123,
-  "device_uid": "SHIELD-ESP32-001",
-  "reason": "AUTO_STRESS",
-  "status": "NEW",
-  "timestamp": "2025-12-23T23:15:00Z",
-  "evidence": [
-    {"type": "AUDIO", "path": "evidence/SHIELD-ESP32-001_20251223_231500.wav"},
-    {"type": "IMAGE", "path": "evidence/SHIELD-ESP32-001_20251223_231502.jpg"}
-  ],
-  "gps": {"lat": 11.9416, "lng": 79.8083}
+  "status": "success",
+  "distress_score": 0.12,
+  "alert_triggered": false,
+  "message": "Status updated"
 }
 ```
 
-```http
-PATCH /api/alerts/{alert_id}/status
-Authorization: Bearer <JWT> (Police/Admin only)
-Content-Type: application/json
+**ESP32 Example Code (Conceptual - NOT included in refactor):**
 
-Request:
-{
-  "status": "IN_PROGRESS"
-}
+```cpp
+// This is REFERENCE ONLY - You mentioned no Arduino code needed
 
-Response:
-{
-  "message": "Alert status updated"
-}
-```
+// Device sends multipart form data
+HTTPClient http;
+http.begin("http://server.com/api/device/event");
 
-#### **3. Multi-Recipient Alerting**
-```http
-POST /api/alerts/dispatch
-Internal endpoint (called automatically)
+http.addHeader("Content-Type", "multipart/form-data");
+String boundary = "----FormBoundary";
 
-Payload:
-{
-  "alert_id": 123,
-  "device_uid": "SHIELD-ESP32-001",
-  "owner_name": "Jane Doe",
-  "gps": {"lat": 11.9416, "lng": 79.8083},
-  "recipients": {
-    "family": ["+919876543210", "+919876543211"],
-    "police": ["emergency@police.gov", "+100"],
-    "ngo": ["helpline@womensafety.org"]
-  }
-}
+String formData = "";
+formData += "--" + boundary + "\r\n";
+formData += "Content-Disposition: form-data; name=\"device_uid\"\r\n\r\n";
+formData += "SHIELD-001\r\n";
 
-Actions:
-1. Send SMS to family via Twilio
-2. Send email with evidence link to police
-3. Make automated call to police station
-4. Push notification to police dashboard
-5. Notify registered NGO helpline
-```
+formData += "--" + boundary + "\r\n";
+formData += "Content-Disposition: form-data; name=\"heart_rate\"\r\n\r\n";
+formData += String(heartRate) + "\r\n";
 
-#### **4. AI Inference**
-```http
-POST /api/ai/predict-stress
-Content-Type: multipart/form-data
+// ... add other fields
 
-Request:
-- audio: <audio_file.wav>
-
-Response:
-{
-  "label": "stressed",
-  "confidence": 0.85,
-  "timestamp": "2025-12-23T23:15:00Z"
-}
+int httpCode = http.POST(formData);
 ```
 
 ---
 
-## 🖥️ **Frontend Dashboard**
+## 🗄️ Database Schema
 
-### **Technology Stack:**
-- **Framework:** React.js / Vue.js / Vanilla JS + Bootstrap 5
-- **Maps:** Leaflet.js / Google Maps API
-- **Charts:** Chart.js
-- **Real-time:** Socket.IO client
-- **State Management:** Context API / Vuex
-
-### **User Roles & Views:**
-
-#### **1. Guardian/Family Portal**
-```
-┌─────────────────────── GUARDIAN DASHBOARD ─────────────────────────┐
-│                                                                     │
-│  👤 Jane Doe (GUARDIAN)                                   [Logout] │
-│                                                                     │
-│  ┌────────────── MY DEVICES ──────────────┐                        │
-│  │                                         │                        │
-│  │  📱 SHIELD-ESP32-001      [🟢 ONLINE]  │                        │
-│  │  ❤️ 72 BPM  🌡️ 36.5°C  🔋 85%         │                        │
-│  │  AI: NORMAL (95%)                       │                        │
-│  │  Last Update: 2 min ago                 │                        │
-│  │                                         │                        │
-│  │  [View Location] [Device Settings]      │                        │
-│  └─────────────────────────────────────────┘                        │
-│                                                                     │
-│  ┌────────────── ACTIVE ALERTS ────────────┐                       │
-│  │                                          │                       │
-│  │  ⚠️ No active alerts                    │                       │
-│  │                                          │                       │
-│  └──────────────────────────────────────────┘                       │
-│                                                                     │
-│  ┌────────────── LIVE MAP ──────────────────┐                      │
-│  │                                          │                       │
-│  │   [Interactive Map with Device Marker]   │                       │
-│  │   📍 Current Location: Puducherry, IN    │                       │
-│  │                                          │                       │
-│  └──────────────────────────────────────────┘                       │
-│                                                                     │
-│  ┌────── ALERT HISTORY (Last 7 days) ──────┐                       │
-│  │  Date       | Status    | Severity       │                       │
-│  │  Dec 20     | RESOLVED  | MEDIUM         │                       │
-│  │  Dec 18     | RESOLVED  | HIGH           │                       │
-│  └──────────────────────────────────────────┘                       │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-
-🚨 WHEN ALERT TRIGGERED:
-┌─────────────────────── 🚨 EMERGENCY ALERT 🚨 ──────────────────────┐
-│                                                                     │
-│  ⚠️ DISTRESS DETECTED - Jane Doe needs immediate help!             │
-│                                                                     │
-│  📍 Location: 11.9416, 79.8083                                      │
-│  🗺️ [View on Google Maps]                                          │
-│                                                                     │
-│  ┌───────── EVIDENCE ─────────┐                                    │
-│  │                            │                                    │
-│  │  🎙️ Audio Recording:       │                                    │
-│  │  [▶️ Play] [Download]      │                                    │
-│  │                            │                                    │
-│  │  📷 Image:                  │                                    │
-│  │  [View Image]              │                                    │
-│  │                            │                                    │
-│  │  ❤️ Vitals:                │                                    │
-│  │  Heart Rate: 115 BPM       │                                    │
-│  │  Temperature: 37.8°C       │                                    │
-│  │  AI Stress: 85%            │                                    │
-│  └────────────────────────────┘                                    │
-│                                                                     │
-│  [📞 Call Police] [📱 Call Jane] [✅ Mark as Handled]               │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-#### **2. Police/Admin Panel**
-```
-┌─────────────────────── POLICE CONTROL CENTER ──────────────────────┐
-│                                                                     │
-│  👮 Officer Sharma (POLICE)                           [Logout]     │
-│                                                                     │
-│  ┌──────── SYSTEM OVERVIEW ────────┐                               │
-│  │  📊 Total Devices: 150          │                               │
-│  │  🚨 Active Alerts: 2            │                               │
-│  │  ✅ Resolved Today: 5           │                               │
-│  │  👥 Registered Users: 120       │                               │
-│  └─────────────────────────────────┘                               │
-│                                                                     │
-│  ┌────────── REAL-TIME ALERTS FEED ─────────┐                      │
-│  │  🚨 NEW - SHIELD-ESP32-045                │                      │
-│  │     Priya Kumar | HIGH                    │                      │
-│  │     📍 Anna Nagar, Chennai                │                      │
-│  │     ⏰ 2 min ago                          │                      │
-│  │     [VIEW DETAILS] [DISPATCH UNIT]        │                      │
-│  │  ─────────────────────────────────────── │                      │
-│  │  🟡 IN_PROGRESS - SHIELD-ESP32-023        │                      │
-│  │     Anjali Reddy | MEDIUM                 │                      │
-│  │     📍 MG Road, Puducherry                │                      │
-│  │     ⏰ 15 min ago                         │                      │
-│  │     [VIEW DETAILS] [UPDATE STATUS]        │                      │
-│  └───────────────────────────────────────────┘                      │
-│                                                                     │
-│  ┌─────────── CITY MAP (Heat Map) ───────────┐                     │
-│  │                                           │                     │
-│  │   [Map showing alert clusters/hotspots]   │                     │
-│  │   Red zones = High alert frequency        │                     │
-│  │                                           │                     │
-│  └───────────────────────────────────────────┘                     │
-│                                                                     │
-│  ┌────────── EVIDENCE DATABASE ──────────┐                         │
-│  │  [Search] [Filter by Date/Location]   │                         │
-│  │                                        │                         │
-│  │  📁 Case #123 - Dec 23, 2025           │                         │
-│  │     🎙️ Audio | 📷 3 Images | 📍 GPS   │                         │
-│  │     [Download All]                     │                         │
-│  └────────────────────────────────────────┘                         │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 📊 **Database Schema**
+### **Enhanced Schema (Based on Requirements)**
 
 ```sql
 -- Users Table
-CREATE TABLE users (
+CREATE TABLE user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     phone VARCHAR(20),
     password_hash VARCHAR(200) NOT NULL,
     role VARCHAR(20) DEFAULT 'GUARDIAN',  -- GUARDIAN, POLICE, ADMIN
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    emergency_contacts TEXT  -- JSON array of contacts
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Emergency Contacts (JSON field)
+    emergency_contacts TEXT,  -- [{"name": "Mom", "phone": "+91..."}]
+    
+    -- Notification Preferences
+    notify_email BOOLEAN DEFAULT 1,
+    notify_sms BOOLEAN DEFAULT 1,
+    notify_push BOOLEAN DEFAULT 1
 );
 
 -- Devices Table
-CREATE TABLE devices (
+CREATE TABLE device (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_uid VARCHAR(50) UNIQUE NOT NULL,
     owner_id INTEGER NOT NULL,
-    device_type VARCHAR(20) DEFAULT 'ESP32-CAM',
-    is_active BOOLEAN DEFAULT TRUE,
-    last_seen TIMESTAMP,
+    device_name VARCHAR(100),
+    is_active BOOLEAN DEFAULT 1,
+    last_seen DATETIME,
     battery_level INTEGER,
     last_lat FLOAT,
     last_lng FLOAT,
-    FOREIGN KEY (owner_id) REFERENCES users(id)
+    
+    -- Device Configuration
+    hr_threshold INTEGER DEFAULT 100,      -- Alert if HR > this
+    temp_threshold FLOAT DEFAULT 38.5,     -- Alert if Temp > this
+    ai_confidence_threshold FLOAT DEFAULT 0.6,  -- AI threshold
+    
+    FOREIGN KEY (owner_id) REFERENCES user(id)
 );
 
 -- Sensor Events Table
-CREATE TABLE sensor_events (
+CREATE TABLE sensor_event (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_id INTEGER NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Physiological Data
     heart_rate FLOAT,
     spo2 FLOAT,
     temperature FLOAT,
-    gsr_value FLOAT,
+    
+    -- AI Analysis
     raw_stress_score FLOAT,
-    ai_label VARCHAR(20),
+    ai_label VARCHAR(20),          -- 'normal' or 'stressed'
     ai_confidence FLOAT,
-    has_audio BOOLEAN DEFAULT FALSE,
+    
+    -- Evidence
+    has_audio BOOLEAN DEFAULT 0,
     audio_path VARCHAR(200),
-    has_image BOOLEAN DEFAULT FALSE,
+    has_image BOOLEAN DEFAULT 0,
     image_path VARCHAR(200),
-    FOREIGN KEY (device_id) REFERENCES devices(id),
+    
+    FOREIGN KEY (device_id) REFERENCES device(id),
     INDEX idx_device_timestamp (device_id, timestamp)
 );
 
 -- Alerts Table
-CREATE TABLE alerts (
+CREATE TABLE alert (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     device_id INTEGER NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    reason VARCHAR(50),  -- AUTO_STRESS, MANUAL_SOS, FALL_DETECTED
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Alert Details
+    reason VARCHAR(50),            -- AUTO_STRESS, MANUAL_SOS, HR_SPIKE, etc.
     status VARCHAR(20) DEFAULT 'NEW',  -- NEW, IN_PROGRESS, RESOLVED
-    severity VARCHAR(20) DEFAULT 'HIGH',  -- HIGH, MEDIUM, LOW
+    severity VARCHAR(20) DEFAULT 'HIGH',  -- LOW, MEDIUM, HIGH, CRITICAL
+    
+    -- Location
     gps_lat FLOAT,
     gps_lng FLOAT,
-    response_time INTEGER,  -- seconds taken to respond
-    resolved_by INTEGER,  -- user_id of police/admin who resolved
-    resolved_at TIMESTAMP,
-    notes TEXT,
-    FOREIGN KEY (device_id) REFERENCES devices(id),
-    FOREIGN KEY (resolved_by) REFERENCES users(id),
-    INDEX idx_status (status),
-    INDEX idx_timestamp (timestamp)
+    location_accuracy FLOAT,       -- GPS accuracy in meters
+    
+    -- Response Tracking
+    acknowledged_by INTEGER,       -- User ID who acknowledged
+    acknowledged_at DATETIME,
+    resolved_by INTEGER,
+    resolved_at DATETIME,
+    resolution_notes TEXT,
+    
+    FOREIGN KEY (device_id) REFERENCES device(id),
+    FOREIGN KEY (acknowledged_by) REFERENCES user(id),
+    FOREIGN KEY (resolved_by) REFERENCES user(id),
+    INDEX idx_status_timestamp (status, timestamp)
 );
 
 -- Evidence Table
 CREATE TABLE evidence (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     alert_id INTEGER NOT NULL,
-    file_type VARCHAR(10),  -- AUDIO, IMAGE, VIDEO
+    file_type VARCHAR(10),         -- AUDIO, IMAGE, VIDEO
     file_path VARCHAR(200),
-    file_size INTEGER,  -- bytes
-    captured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    file_size INTEGER,             -- bytes
+    mime_type VARCHAR(50),
+    captured_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Metadata
+    duration FLOAT,                -- for audio/video (seconds)
     gps_lat FLOAT,
     gps_lng FLOAT,
-    FOREIGN KEY (alert_id) REFERENCES alerts(id)
+    
+    FOREIGN KEY (alert_id) REFERENCES alert(id)
 );
 
--- Notifications Table
-CREATE TABLE notifications (
+-- Notifications Log
+CREATE TABLE notification_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    alert_id INTEGER,
-    type VARCHAR(20),  -- SMS, EMAIL, PUSH
-    recipient VARCHAR(100),  -- phone/email
-    message TEXT,
-    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    delivered BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (alert_id) REFERENCES alerts(id)
-);
-
--- Emergency Contacts Table
-CREATE TABLE emergency_contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    name VARCHAR(100),
-    phone VARCHAR(20),
-    email VARCHAR(100),
-    relationship VARCHAR(50),
-    priority INTEGER DEFAULT 1,  -- 1=highest priority
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    alert_id INTEGER NOT NULL,
+    recipient_type VARCHAR(20),    -- FAMILY, POLICE, ADMIN
+    recipient_id INTEGER,
+    recipient_contact VARCHAR(100), -- phone/email
+    
+    notification_type VARCHAR(20), -- SMS, EMAIL, PUSH
+    status VARCHAR(20),            -- SENT, DELIVERED, FAILED
+    
+    sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    delivered_at DATETIME,
+    error_message TEXT,
+    
+    FOREIGN KEY (alert_id) REFERENCES alert(id),
+    FOREIGN KEY (recipient_id) REFERENCES user(id)
 );
 ```
 
 ---
 
-## 🔐 **Security & Privacy**
+## 🔐 Security Measures
 
-### **Data Encryption:**
-- ✅ **In Transit:** HTTPS/TLS 1.3 for all API communications
-- ✅ **At Rest:** AES-256 encryption for sensitive evidence files
-- ✅ **Passwords:** bcrypt hashing with salt
-- ✅ **JWT Tokens:** Signed with HMAC-SHA256
+### **Data Protection:**
 
-### **Access Control:**
-- ✅ **Role-Based Access Control (RBAC):** Guardian, Police, Admin
-- ✅ **Evidence Access:** Restricted to authorized users only
-- ✅ **API Authentication:** JWT required for all protected endpoints
-- ✅ **Device Authentication:** Unique device UID + API key
+1. **Authentication:** JWT tokens with expiry
+2. **Password Hashing:** PBKDF2-SHA256
+3. **HTTPS:** SSL/TLS encryption in production
+4. **Evidence Encryption:** AES-256 for stored files
+5. **Access Control:** Role-based permissions
+6. **Audit Logs:** Track all data access
 
-### **Privacy Measures:**
-- ✅ **Data Minimization:** Collect only necessary information
-- ✅ **User Consent:** Explicit permission for emergency contacts
-- ✅ **Audit Logs:** Track all evidence access attempts
-- ✅ **Auto-Deletion:** Evidence older than 90 days (configurable)
+### **Privacy Compliance:**
+
+- User consent for data collection
+- GDPR/local privacy law adherence
+- Data retention policies
+- Right to delete account and data
 
 ---
 
-## 📡 **Communication Protocols**
+## 📊 Key Features Summary
 
-### **ESP32 ↔ Backend:**
-```
-Protocol: HTTP/HTTPS over WiFi or GSM
-Format: Multipart form-data (for files) + JSON
-Frequency: 
-  - Normal: Every 60 seconds (vitals update)
-  - Alert Mode: Every 10 seconds (GPS tracking)
-```
-
-### **Backend → Twilio (SMS/Calls):**
-```python
-from twilio.rest import Client
-
-client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-
-# Send SMS
-message = client.messages.create(
-    body=f"🚨 EMERGENCY: {user_name} needs help! Location: https://maps.google.com/?q={lat},{lng}",
-    from_=TWILIO_PHONE_NUMBER,
-    to=family_phone
-)
-
-# Make automated call
-call = client.calls.create(
-    url='http://yourserver.com/emergency_call.xml',  # TwiML
-    to=police_phone,
-    from_=TWILIO_PHONE_NUMBER
-)
-```
-
-### **Backend → Frontend (Real-time):**
-```javascript
-// Socket.IO for live updates
-const socket = io('http://localhost:5000');
-
-socket.on('new_alert', (data) => {
-  console.log('New alert:', data);
-  showAlertNotification(data);
-  updateMap(data.gps);
-});
-
-socket.on('alert_status_update', (data) => {
-  updateAlertCard(data.alert_id, data.status);
-});
-```
+| Feature | Implementation | Status |
+|---------|----------------|--------|
+| **Dual-Mode Stress Detection** | AI Voice + Physiological Sensors | ✅ Implemented |
+| **Automatic Alert Triggering** | Distress score > threshold | ✅ Implemented |
+| **Manual SOS Button** | Emergency override | ✅ Implemented |
+| **GPS Location Tracking** | Real-time coordinates | ✅ Implemented |
+| **Evidence Capture** | Audio + Images | ✅ Implemented |
+| **Multi-Channel Alerts** | SMS + Email + Push | ⏳ Twilio Integration |
+| **Family Portal** | Web dashboard | ✅ Implemented |
+| **Police Admin Panel** | Evidence management | ✅ Implemented |
+| **Live Monitoring** | Real-time device status | ✅ Implemented |
+| **Analytics Dashboard** | Heatmaps, trends | ✅ Implemented |
+| **Device Simulator** | Testing without hardware | ✅ Implemented |
 
 ---
 
-## 🧪 **Testing Strategy**
+## 🚀 Deployment Architecture
 
-### **Unit Tests:**
-```bash
-# AI Model
-pytest tests/test_ai_model.py
+### **Production Setup:**
 
-# Backend APIs
-pytest tests/test_api_endpoints.py
-
-# Database operations
-pytest tests/test_database.py
 ```
-
-### **Integration Tests:**
-```bash
-# ESP32 → Backend flow
-pytest tests/test_device_integration.py
-
-# Alert dispatch system
-pytest tests/test_alert_dispatch.py
-```
-
-### **End-to-End Tests:**
-```bash
-# Full workflow simulation
-python tests/test_e2e_workflow.py
-```
-
-### **Hardware Tests:**
-```c
-// ESP32 firmware testing
-void test_sensors() {
-  assert(read_heart_rate() > 0);
-  assert(read_temperature() > 30.0);
-  assert(gps_get_location() == GPS_OK);
-}
+┌─────────────────────────────────────────────────┐
+│         IoT Device (ESP32)                      │
+│         - Connects via 4G/WiFi                  │
+└──────────────┬──────────────────────────────────┘
+               │
+               ↓ HTTPS (Port 443)
+┌─────────────────────────────────────────────────┐
+│      Cloud Server (AWS/Azure/GCP)               │
+│  ┌───────────────────────────────────────────┐ │
+│  │  Load Balancer (Nginx)                    │ │
+│  └───────────┬───────────────────────────────┘ │
+│              ↓                                  │
+│  ┌───────────────────────────────────────────┐ │
+│  │  Flask App (Gunicorn Workers)             │ │
+│  │  - AI Inference Engine                    │ │
+│  │  - REST API                               │ │
+│  └───────────┬───────────────────────────────┘ │
+│              ↓                                  │
+│  ┌───────────────────────────────────────────┐ │
+│  │  PostgreSQL Database                      │ │
+│  └───────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────┐ │
+│  │  Redis Cache (Session Management)         │ │
+│  └───────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────┐ │
+│  │  S3/Cloud Storage (Evidence Files)        │ │
+│  └───────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────┘
+               │
+               ↓
+┌─────────────────────────────────────────────────┐
+│      External Services                          │
+│  - Twilio (SMS/Calls)                           │
+│  - SendGrid (Email)                             │
+│  - Firebase (Push Notifications)                │
+└─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 **Deployment Architecture**
-
-### **Production Stack:**
-```
-┌─────────────────────────────────────────┐
-│         CLOUD INFRASTRUCTURE            │
-│                                         │
-│  ┌──────────────┐   ┌──────────────┐  │
-│  │   Frontend   │   │   Backend    │  │
-│  │   (Nginx)    │◄─►│   (Gunicorn) │  │
-│  │   React/Vue  │   │   Flask API  │  │
-│  └──────────────┘   └──────────────┘  │
-│         │                    │          │
-│         ▼                    ▼          │
-│  ┌──────────────┐   ┌──────────────┐  │
-│  │     CDN      │   │  PostgreSQL  │  │
-│  │  (CloudFlare)│   │   Database   │  │
-│  └──────────────┘   └──────────────┘  │
-│                            │            │
-│                     ┌──────────────┐   │
-│                     │   AWS S3     │   │
-│                     │  (Evidence)  │   │
-│                     └──────────────┘   │
-│                                         │
-│  External Services:                    │
-│  - Twilio (SMS/Calls)                  │
-│  - SendGrid (Email)                    │
-│  - Google Maps API                     │
-│                                         │
-└─────────────────────────────────────────┘
-```
-
-### **Deployment Commands:**
-```bash
-# Backend deployment (using Docker)
-docker build -t women-safety-backend .
-docker run -p 5000:5000 -e DATABASE_URL=... women-safety-backend
-
-# Frontend deployment
-npm run build
-scp -r build/* user@server:/var/www/html/
-
-# Database migration
-flask db upgrade
-
-# Start services
-gunicorn -w 4 -b 0.0.0.0:5000 run:app
-```
-
----
-
-## 📈 **Performance Metrics**
+## 📈 Performance Metrics
 
 ### **System Requirements:**
-- **Backend Server:** 2 vCPU, 4GB RAM, 50GB SSD
-- **Database:** PostgreSQL 14+
-- **Concurrent Users:** Up to 500 devices
-- **Response Time:** < 3 seconds (alert dispatch)
+
+- **Response Time:** < 2 seconds from detection to alert
+- **AI Inference:** < 500ms for voice analysis
 - **Uptime:** 99.9% availability
+- **Concurrent Users:** 10,000+
+- **Alert Delivery:** 95% within 5 seconds
 
-### **Scalability:**
-- **Horizontal Scaling:** Load balancer + multiple Flask instances
-- **Caching:** Redis for session management
-- **CDN:** Static assets served via CloudFlare
-- **Database:** Read replicas for analytics queries
+### **AI Model Performance:**
 
----
-
-## 📚 **Documentation Structure**
-
-```
-women_safe/
-├── README.md (Overview)
-├── REFACTORED_ARCHITECTURE.md (This file)
-├── ESP32_SETUP_GUIDE.md (Hardware setup)
-├── API_DOCUMENTATION.md (Complete API reference)
-├── DEPLOYMENT_GUIDE.md (Production deployment)
-├── USER_MANUAL.md (End-user guide)
-└── TESTING_GUIDE.md (QA procedures)
-```
+- **Accuracy:** > 90%
+- **False Positive Rate:** < 5%
+- **False Negative Rate:** < 2% (critical)
 
 ---
 
-## 🎯 **Future Enhancements**
+## 🎓 Academic Contributions
 
-### **Phase 2 (Next 6 months):**
-- ✅ **Video Streaming:** Live video feed during emergencies
-- ✅ **Geofencing:** Alert if user leaves safe zone
-- ✅ **Fall Detection:** Accelerometer-based fall detection
-- ✅ **Voice Commands:** "Help me" voice activation
-- ✅ **Multi-Language:** Support regional languages
+### **Novel Features:**
 
-### **Phase 3 (1 year):**
-- ✅ **Community Network:** Nearby volunteers can respond
-- ✅ **Predictive Analytics:** ML model to predict unsafe zones
-- ✅ **Wearable Integration:** Smartwatch app
-- ✅ **Blockchain:** Immutable evidence logging
-- ✅ **AR Navigation:** Augmented reality escape routes
+1. **Dual-Mode Detection Engine:** Combining physiological + voice AI
+2. **Smartphone-Independent Operation:** Standalone IoT device
+3. **Proactive Threat Detection:** No manual activation needed
+4. **Comprehensive Evidence Collection:** Legal admissibility
+5. **Multi-Stakeholder Alert System:** Simultaneous family + police
 
----
+### **Publications:**
 
-## 📞 **Support & Contact**
-
-**Project Team:**
-- GOPIKAA. T (22UCS045)
-- DASARI DEEPTHIKA DEVI (22CSL002)
-- KAYALVIZHI. A (22UCS076)
-
-**Guide:** Mrs. S. DEEBA  
-**Institution:** Sri Manakula Vinayagar Engineering College
-
-**Emergency Helpline:** 100 (Police) | 1091 (Women Helpline)
+- Conference paper submission planned
+- Patent application under consideration
 
 ---
 
+## 🔧 Technology Stack Summary
+
+### **Hardware (IoT Device):**
+- ESP32-CAM
+- Microphone (MEMS)
+- MAX30102 (Heart Rate + SpO2 Sensor)
+- GPS Module (NEO-6M)
+- High-Decibel Buzzer
+- Battery Pack (Li-ion)
+
+### **Backend:**
+- Python 3.9+
+- Flask 3.0
+- TensorFlow / Scikit-learn (AI)
+- SQLAlchemy ORM
+- JWT Authentication
+- Twilio API
+
+### **Frontend:**
+- HTML5, CSS3, Bootstrap 5
+- Vanilla JavaScript
+- Leaflet.js (Maps)
+- Chart.js (Analytics)
+
+### **Database:**
+- SQLite (Development)
+- PostgreSQL (Production)
+
+### **Deployment:**
+- Docker
+- Gunicorn
+- Nginx
+- AWS/Azure/GCP
+
+---
+
+## 📚 References
+
+Based on 8 research papers reviewed in literature survey (see PROJECT_PHASE_I_REPORT.docx)
+
+---
+
+**Document Version:** 2.0  
 **Last Updated:** December 23, 2025  
-**Version:** 2.0  
-**License:** MIT (Open Source)
+**Status:** Refactored and Ready for Implementation
