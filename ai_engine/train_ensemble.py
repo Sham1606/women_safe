@@ -11,59 +11,68 @@ import logging
 from sklearn.model_selection import cross_val_score
 import json
 
-from audio_stress_detector import AudioStressDetector
-from feature_extractor import FeatureExtractor
-from preprocessing import AudioPreprocessor
+import sys
+import os
+
+# Add parent directory to path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from ai_engine.audio_stress_detector import AudioStressDetector
+from ai_engine.feature_extractor import FeatureExtractor
+from ai_engine.preprocessing import AudioPreprocessor
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def load_dataset(data_dir: str) -> tuple:
-    """Load audio dataset and labels
-    
-    Expected structure:
-    data_dir/
-        stressed/
-            audio1.wav
-            audio2.wav
-        non_stressed/
-            audio3.wav
-            audio4.wav
-    
-    Returns:
-        (features, labels)
-    """
+    """Load audio dataset and labels from RAVDESS structure"""
     data_path = Path(data_dir)
-    
-    stressed_dir = data_path / "stressed"
-    non_stressed_dir = data_path / "non_stressed"
-    
     feature_extractor = FeatureExtractor()
-    
     features = []
     labels = []
     
-    # Load stressed samples
-    logger.info(f"Loading stressed samples from {stressed_dir}")
-    for audio_file in stressed_dir.glob("*.wav"):
+    # Import emotion mappings from config
+    import config
+    
+    logger.info(f"Scanning for audio files in {data_path}...")
+    
+    # RAVDESS filename format: 03-01-XX-01-01-01-XX.wav
+    # Third part is emotion: 01=neutral, 02=calm, ..., 08=surprised
+    
+    files = list(data_path.rglob("*.wav"))
+    logger.info(f"Found {len(files)} .wav files")
+    
+    for audio_file in files:
         try:
+            filename = audio_file.name
+            parts = filename.split('-')
+            
+            if len(parts) < 3:
+                continue
+                
+            emotion_code = parts[2]
+            emotion = config.RAVDESS_MAP.get(emotion_code)
+            
+            if not emotion:
+                continue
+                
+            label_str = config.EMOTION_TO_LABEL.get(emotion)
+            
+            if label_str is None:
+                continue
+                
+            # Convert to binary label: stressed=1, normal=0
+            label = 1 if label_str == 'stressed' else 0
+            
             feat = feature_extractor.extract_from_file(str(audio_file))
-            features.append(feat)
-            labels.append(1)  # Stressed
+            if feat is not None:
+                features.append(feat)
+                labels.append(label)
+                
         except Exception as e:
             logger.warning(f"Failed to process {audio_file}: {e}")
-    
-    # Load non-stressed samples
-    logger.info(f"Loading non-stressed samples from {non_stressed_dir}")
-    for audio_file in non_stressed_dir.glob("*.wav"):
-        try:
-            feat = feature_extractor.extract_from_file(str(audio_file))
-            features.append(feat)
-            labels.append(0)  # Non-stressed
-        except Exception as e:
-            logger.warning(f"Failed to process {audio_file}: {e}")
-    
+            
     logger.info(f"Loaded {len(features)} samples ({labels.count(1)} stressed, {labels.count(0)} non-stressed)")
     
     return np.array(features), np.array(labels)

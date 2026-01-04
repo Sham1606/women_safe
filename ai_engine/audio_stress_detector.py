@@ -18,8 +18,14 @@ import logging
 from typing import Tuple, Dict
 from pathlib import Path
 
-from .feature_extractor import FeatureExtractor
-from .preprocessing import AudioPreprocessor
+import sys
+import os
+
+# Add parent directory to path to allow absolute imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from ai_engine.feature_extractor import FeatureExtractor
+from ai_engine.preprocessing import AudioPreprocessor
 
 logger = logging.getLogger(__name__)
 

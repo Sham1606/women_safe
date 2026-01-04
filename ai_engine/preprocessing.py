@@ -7,11 +7,18 @@ Preprocesses audio data for stress detection:
 - Resampling
 """
 
+import sys
+import os
+from typing import Tuple, Optional
+import logging
+
+# Add parent directory to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
+
 import librosa
 import numpy as np
 import noisereduce as nr
-from typing import Tuple
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -23,3 +23,4 @@ tensorflow
 librosa
 scikit-learn
 joblib
+noisereduce

@@ -1,31 +1,38 @@
-import joblib
 import numpy as np
 import os
 import sys
 import io
 import librosa
-import soundfile as sf
+import logging
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
-from ai_engine.preprocessing import trim_silence, normalize_audio, pad_or_truncate
-from ai_engine.features import extract_features
+from ai_engine.audio_stress_detector import AudioStressDetector
 
-# Global model cache
-MODEL = None
-SCALER = None
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def load_models():
-    """Load model and scaler if not already loaded."""
-    global MODEL, SCALER
-    if MODEL is None:
+# Global model instance
+DETECTOR = None
+
+def load_model():
+    """Load the AudioStressDetector model if not already loaded."""
+    global DETECTOR
+    if DETECTOR is None:
         try:
-            MODEL = joblib.load(config.MODEL_PATH)
-            SCALER = joblib.load(config.SCALER_PATH)
-            print("Models loaded successfully.")
+            # Path to the ensemble model trained by train_ensemble.py
+            model_path = os.path.join(config.BASE_DIR, 'ai_engine', 'models', 'ensemble_model.pkl')
+            
+            if not os.path.exists(model_path):
+                logger.error(f"Model file not found at {model_path}")
+                return False
+                
+            DETECTOR = AudioStressDetector(model_path=model_path)
+            logger.info("AudioStressDetector loaded successfully.")
         except Exception as e:
-            print(f"Error loading models: {e}")
+            logger.error(f"Error loading AudioStressDetector: {e}")
             return False
     return True
 
@@ -34,54 +41,51 @@ def predict_stress(audio_bytes=None, file_path=None):
     Predict stress from audio bytes or file path.
     Returns: {"label": "stressed"|"normal", "confidence": float}
     """
-    if not load_models():
+    if not load_model():
         return {"error": "Model not loaded"}
 
-    # Load audio
     try:
         if audio_bytes:
-            # Load from bytes (expected format: wav/mp3/etc)
+            # Load audio from bytes
+            # librosa.load accepts file-like objects
             y, sr = librosa.load(io.BytesIO(audio_bytes), sr=config.SAMPLE_RATE)
         elif file_path:
+            # Load audio from file path
             y, sr = librosa.load(file_path, sr=config.SAMPLE_RATE)
         else:
             return {"error": "No input provided"}
+            
+        # Use detector to predict from array (since we already loaded it to memory)
+        # Note: AudioStressDetector.predict_from_array handles preprocessing
+        prediction, confidence = DETECTOR.predict_from_array(y)
+        
+        return {
+            "label": "stressed" if prediction == 1 else "normal",
+            "confidence": confidence,
+            "is_stressed": bool(prediction == 1)
+        }
+        
     except Exception as e:
-        return {"error": f"Audio load failed: {str(e)}"}
-
-    # Preprocess
-    y = trim_silence(y)
-    y = normalize_audio(y)
-    y = pad_or_truncate(y)
-
-    # Feature extraction
-    feats = extract_features(y)
-    feats = feats.reshape(1, -1) # Reshape for scalar
-
-    # Scale
-    feats_scaled = SCALER.transform(feats)
-
-    # Predict
-    probs = MODEL.predict_proba(feats_scaled)[0]
-    classes = MODEL.classes_
-    
-    # Get class with highest probability
-    max_idx = np.argmax(probs)
-    label = classes[max_idx]
-    confidence = float(probs[max_idx])
-
-    return {
-        "label": label,
-        "confidence": confidence
-    }
+        logger.error(f"Prediction failed: {e}")
+        return {"error": f"Prediction failed: {str(e)}"}
 
 if __name__ == "__main__":
-    # Simple test
+    # Test with a dummy file if available
     print("Running inference test...")
-    # Generate a dummy file if needed or use one exists
-    test_file = os.path.join(config.RAW_DATA_DIR, "03-01-05-01-01-01-01.wav") # Angry dummy
-    if os.path.exists(test_file):
-        result = predict_stress(file_path=test_file)
-        print("Result:", result)
-    else:
-        print("No test file found.")
+    if load_model():
+        # Look for a test file
+        test_dir = os.path.join(config.RAW_DATA_DIR)
+        test_files = []
+        for root, dirs, files in os.walk(test_dir):
+            for file in files:
+                if file.endswith('.wav'):
+                    test_files.append(os.path.join(root, file))
+                    if len(test_files) > 0: break
+            if len(test_files) > 0: break
+            
+        if test_files:
+            print(f"Testing with {test_files[0]}")
+            result = predict_stress(file_path=test_files[0])
+            print("Result:", result)
+        else:
+            print("No wav files found for testing.")

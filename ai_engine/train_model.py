@@ -14,7 +14,7 @@ from tqdm import tqdm
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
-from ai_engine.preprocessing import preprocess_pipeline
+from ai_engine.preprocessing import AudioPreprocessor
 from ai_engine.features import extract_features
 
 def load_data():
@@ -30,17 +30,24 @@ def load_data():
     groups = []  # For speaker-wise split
 
     print("Extracting features...")
+    # Initialize preprocessor
+    preprocessor = AudioPreprocessor(target_sr=config.SAMPLE_RATE, trim_silence=True)
+    
     for index, row in tqdm(df.iterrows(), total=len(df)):
         file_path = row['file_path']
         label = row['label']
         actor_id = row['actor_id']
 
-        audio = preprocess_pipeline(file_path)
-        if audio is not None:
-            feats = extract_features(audio)
-            X.append(feats)
-            y.append(label)
-            groups.append(actor_id)
+        try:
+            audio, _ = preprocessor.preprocess_from_file(file_path)
+            if audio is not None:
+                feats = extract_features(audio)
+                X.append(feats)
+                y.append(label)
+                groups.append(actor_id)
+        except Exception as e:
+            print(f"Error processing {file_path}: {e}")
+            continue
     
     return np.array(X), np.array(y), np.array(groups)
 
