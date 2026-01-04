@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Test Suite | Shield System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="glass-card p-4">
+        <h2 class="text-premium mb-4">🧪 Developer Test Suite</h2>
+        <p class="text-muted">Use this interface to run system tests and verify API endpoints.</p>
+
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i> This page is for development purposes only.
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <h5 class="card-title">Run Unit Tests</h5>
+                        <p class="card-text">Execute backend unit tests.</p>
+                        <button class="btn btn-outline-primary w-100">Run Tests</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-body">
+                        <h5 class="card-title">Test API Connectivity</h5>
+                        <p class="card-text">Ping all major API endpoints.</p>
+                        <button class="btn btn-outline-success w-100">Ping APIs</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

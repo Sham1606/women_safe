@@ -1,0 +1,78 @@
+<nav class="navbar navbar-expand-lg nav-glass sticky-top">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-premium" href="/dashboard">
+            🛡️ ShieldSystem
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0" id="navLinks">
+                <!-- Links will be injected/toggled by navigation.js -->
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard" data-page="dashboard">
+                        <i class="bi bi-grid-fill me-1"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/monitor" data-page="monitor">
+                        <i class="bi bi-activity me-1"></i> Monitor
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/alerts" data-page="alerts">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Alerts
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/devices" data-page="devices" data-role="GUARDIAN,ADMIN">
+                        <i class="bi bi-phone-fill me-1"></i> Devices
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/evidence" data-page="evidence" data-role="POLICE,ADMIN">
+                        <i class="bi bi-collection-play-fill me-1"></i> Evidence
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/analytics" data-page="analytics" data-role="POLICE,ADMIN">
+                        <i class="bi bi-graph-up-arrow me-1"></i> Analytics
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin" data-page="admin" data-role="ADMIN,POLICE">
+                        <i class="bi bi-shield-lock-fill me-1"></i> Admin
+                    </a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center text-light" href="#" role="button" data-bs-toggle="dropdown">
+                        <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                            <span id="userInitials">U</span>
+                        </div>
+                        <span id="userNameDisplay">User</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark glass-card border-0">
+                        <li><span class="dropdown-header" id="userRoleDisplay">ROLE</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" href="/settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                        <li><a class="dropdown-item" href="/notifications"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .avatar-sm { width: 32px; height: 32px; font-weight: bold; }
+    .nav-link { transition: all 0.2s; border-radius: 8px; margin: 0 2px; }
+    .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: #fff !important; }
+    .dropdown-menu-dark { background-color: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px); }
+</style>
